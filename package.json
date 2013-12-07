@@ -1,0 +1,14 @@
+{
+  "name": "arbolagetoppet.nu",
+  "version": "0.1.0",
+  "devDependencies": {
+    "grunt":                    "*",
+    "grunt-notify":             "*",
+    "grunt-contrib-jshint":     "*",
+    "grunt-contrib-uglify":     "*",
+    "grunt-contrib-watch":      "*",
+    "grunt-browserify":         "*",
+    "grunt-contrib-qunit":      "*",
+    "matchdep":                 "*"
+  }
+}

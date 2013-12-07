@@ -1,0 +1,23 @@
+{
+  "name": "viewpager",
+  "version": "0.0.1",
+  "authors": [
+    "Anton Johansson <hello@antonj.se>",
+    "Fredrik Jonsson <hello@fredrikj.se>"
+  ],
+  "description": "Paging views like a boss",
+  "main": "dist/viewpager.js",
+  "keywords": [
+    "scroller",
+    "pager",
+    "slideshow"
+  ],
+  "license": "MIT",
+  "homepage": "viewpager.com",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "examples",
+    "node_modules"
+  ]
+}

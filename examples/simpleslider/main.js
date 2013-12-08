@@ -23,9 +23,9 @@ var vp = new ViewPager(view_pager_elem, {
   }
 });
 
-document.getElementById('prev').addEventListener('click', function () {
-  vp.previous();
-});
-document.getElementById('next').addEventListener('click', function () {
-  vp.next();
-});
+// document.getElementById('prev').addEventListener('click', function () {
+//   vp.previous();
+// });
+// document.getElementById('next').addEventListener('click', function () {
+//   vp.next();
+// });

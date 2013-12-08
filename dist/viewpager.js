@@ -84,7 +84,7 @@ module.exports = {
 'use strict';
 
 var utils = require('./utils');
-var rAF = require('./raf').requestAnimationFrame;
+var raf = require('./raf').requestAnimationFrame;
 var Events = require('./events');
 
 function ViewPager(elem, options) {
@@ -119,16 +119,15 @@ function ViewPager(elem, options) {
       onPageChange = options.onPageChange || noop,
       onSizeChanged = options.onSizeChanged || noop;
 
-
   function isMovingOutOfBounds() {
     return PAGES &&
       ((move_diff_px < 0) && (active_page === 0)) ||
       ((move_diff_px > 0) && ((active_page + 1) === PAGES));
   }
-  
+
   function getPoint (event) {
     return has_touch ? event.touches[0] : event;
-  }  
+  }
 
   var events = {
     handleEvent : function (event) {
@@ -192,13 +191,14 @@ function ViewPager(elem, options) {
       }
 
       if (!is_active) {
+        is_dragging = false;
         Events.add(elem, ev_start_name, this);
         Events.remove(container, ev_move_name, this);
         Events.remove(container, ev_end_name, this);
         return false;
       }
-
       e.preventDefault(); // prevent default scrolling
+
       is_animating = false; // Stop animations
 
       move_diff_px = DIRECTION_HORIZONTAL ? m_down_x - p.pageX : m_down_y - p.pageY;
@@ -286,18 +286,17 @@ function ViewPager(elem, options) {
            (!should_change_page && ((anim_from_offset >= 0 && move_offset > 0) ||
                                     (anim_from_offset <= 0 && move_offset < 0))))) {
         onPageScroll(move_offset, active_page);
-        rAF(update);
+        raf(update);
       } else {
         handleAnimEnd();
       }
     }
 
-    rAF(update);
+    raf(update);
   }
 
   Events.add(elem, ev_start_name, events);
   Events.add(window, 'resize', events);
-
 
   /** move_diff_pxe API */
   return {
@@ -306,7 +305,7 @@ function ViewPager(elem, options) {
     },
     previous : function() {
       animate(true, 500, true);
-    }    
+    }
   };
 }
 

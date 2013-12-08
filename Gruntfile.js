@@ -6,13 +6,11 @@ module.exports = function (grunt) {
     pkg: grunt.file.readJSON('package.json'),
 
     jshint: {
-      ignore_warning: {
-        options: {
-          '-W015' : true,
-          'globalstrict' : true
-        },
-        src: ['src/**/*.js']
-      }
+      options: {
+        globalstrict : true,
+        trailing: true
+      },
+      src: ['src/**/*.js']
     },
 
     uglify: {

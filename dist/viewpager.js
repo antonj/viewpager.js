@@ -282,9 +282,10 @@ function ViewPager(elem, options) {
       }
 
       if (is_animating &&
-          ((should_change_page && (move_offset > Math.min(anim_from_offset, anim_to_offset) && move_offset < Math.max(anim_from_offset, anim_to_offset))) ||
-           (!should_change_page && ((anim_from_offset >= 0 && move_offset > 0) ||
-                                    (anim_from_offset <= 0 && move_offset < 0))))) {
+          ((should_change_page &&
+            (move_offset >= Math.min(anim_from_offset, anim_to_offset) &&
+             move_offset <= Math.max(anim_from_offset, anim_to_offset))) ||
+           (!should_change_page && move_offset !== 0))) {
         onPageScroll(move_offset, active_page);
         raf(update);
       } else {

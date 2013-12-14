@@ -24,6 +24,7 @@ function ViewPager(elem, options) {
       anim_end_time,
       anim_to_offset,
       anim_from_offset,
+      anim_direction,
       is_active,
       move_diff_px = 0,
       move_offset = 0,
@@ -162,9 +163,9 @@ function ViewPager(elem, options) {
       move_offset = 0;
     }
 
-    onPageScroll(anim_to_offset, active_page);
+    onPageScroll(anim_to_offset * anim_direction, active_page);
     if (is_animating && is_changing_page) { // Could be aborted by drag
-      active_page += anim_to_offset;
+      active_page += anim_to_offset * anim_direction;
       onPageChange(active_page);
     }
 
@@ -174,25 +175,28 @@ function ViewPager(elem, options) {
 
   function animate(should_change_page, duration, backwards) {
     duration = duration || ANIM_DURATION_MAX;
-    anim_start_time = Date.now();
-    anim_end_time = anim_start_time + duration;
-    anim_from_offset = move_offset;
-    anim_to_offset = ((move_offset >= 0) && !backwards) ? 1 : -1;
     is_animating = true;
     is_changing_page = should_change_page;
     
-    if (anim_from_offset < -1 || anim_from_offset > 1) {
-      anim_to_offset = Math.round(anim_from_offset);
-    }
+    anim_start_time = Date.now();
+    anim_end_time = anim_start_time + duration;
+    
+    // Animate from 0 -> 1
+    anim_from_offset = Math.abs(move_offset);
+    anim_to_offset = (is_changing_page) ? 1 : 0;
+    
+    // Direction of animation -1 or 1
+    anim_direction = ((move_offset >= 0) && !backwards) ? 1 : -1;
 
-    if (!is_changing_page) {
-      anim_to_offset = 0;
+    // Animate more to closest page
+    if (anim_from_offset > 1) {
+      anim_to_offset = Math.round(anim_from_offset);
     }
 
     function update () {
       var changed_page = false;
       move_offset = utils.mapClamp(Date.now(), anim_start_time, anim_end_time,
-                              anim_from_offset, anim_to_offset);
+                                   anim_from_offset, anim_to_offset);
 
       if (is_dragging) {
         is_animating = false;
@@ -201,10 +205,10 @@ function ViewPager(elem, options) {
 
       if (is_animating &&
           ((should_change_page &&
-            (move_offset >= Math.min(anim_from_offset, anim_to_offset) &&
-             move_offset <= Math.max(anim_from_offset, anim_to_offset))) ||
+            (move_offset >= anim_from_offset) &&
+            (move_offset < anim_to_offset)) ||
            (!should_change_page && move_offset !== 0))) {
-        onPageScroll(move_offset, active_page);
+        onPageScroll(move_offset * anim_direction, active_page);
         raf(update);
       } else {
         handleAnimEnd();

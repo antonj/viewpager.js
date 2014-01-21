@@ -11,6 +11,7 @@ function ViewPager(elem, options) {
       PAGES = options.pages !== undefined ? options.pages : false,
       PREVENT_ALL_NATIVE_SCROLLING = options.prevent_all_native_scrolling !== undefined ? options.prevent_all_native_scrolling : false,
       DIRECTION_HORIZONTAL = !options.vertical,
+      TIPPING_POINT = options.tipping_point !== undefined ? options.tipping_point : 0.5,
       container = window,
       elem_size = DIRECTION_HORIZONTAL ? elem.offsetWidth : elem.offsetHeight,
       m_down_x = 0,
@@ -140,7 +141,7 @@ function ViewPager(elem, options) {
       // TODO check speed the last 250 ms ?
       var shouldChange = (Number(duration) < 250 &&
                           Math.abs(move_diff_px) > 20) ||
-            Math.abs(move_diff_px) > elem_size * 0.5;
+            Math.abs(move_diff_px) > elem_size * TIPPING_POINT;
       shouldChange &= !isMovingOutOfBounds();
       // TODO Direction?
       // TODO Did cancel animation should not go back to 0,

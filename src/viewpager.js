@@ -9,6 +9,7 @@ function ViewPager(elem, options) {
   options = options || {};
   var ANIM_DURATION_MAX = options.anim_duration !== undefined ? options.anim_duration : 200,
       PAGES = options.pages !== undefined ? options.pages : false,
+      PREVENT_ALL_NATIVE_SCROLLING = options.prevent_all_native_scrolling !== undefined ? options.prevent_all_native_scrolling : false,
       DIRECTION_HORIZONTAL = !options.vertical,
       container = window,
       elem_size = DIRECTION_HORIZONTAL ? elem.offsetWidth : elem.offsetHeight,
@@ -109,14 +110,14 @@ function ViewPager(elem, options) {
         }
       }
 
-      if (!is_active) {
+      if (!is_active && !PREVENT_ALL_NATIVE_SCROLLING) {
         is_dragging = false;
         Events.add(elem, ev_start_name, this);
         Events.remove(container, ev_move_name, this);
         Events.remove(container, ev_end_name, this);
         return false;
       }
-      e.preventDefault(); // prevent default scrolling
+      e.preventDefault(); // Scrolling in right direction prevent default scroll
 
       is_animating = false; // Stop animations
 

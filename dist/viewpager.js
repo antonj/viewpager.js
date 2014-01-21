@@ -1,4 +1,4 @@
-;(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 /*global module*/
 'use strict';
 
@@ -91,6 +91,7 @@ function ViewPager(elem, options) {
   options = options || {};
   var ANIM_DURATION_MAX = options.anim_duration !== undefined ? options.anim_duration : 200,
       PAGES = options.pages !== undefined ? options.pages : false,
+      PREVENT_ALL_NATIVE_SCROLLING = options.prevent_all_native_scrolling !== undefined ? options.prevent_all_native_scrolling : false,
       DIRECTION_HORIZONTAL = !options.vertical,
       container = window,
       elem_size = DIRECTION_HORIZONTAL ? elem.offsetWidth : elem.offsetHeight,
@@ -191,14 +192,14 @@ function ViewPager(elem, options) {
         }
       }
 
-      if (!is_active) {
+      if (!is_active && !PREVENT_ALL_NATIVE_SCROLLING) {
         is_dragging = false;
         Events.add(elem, ev_start_name, this);
         Events.remove(container, ev_move_name, this);
         Events.remove(container, ev_end_name, this);
         return false;
       }
-      e.preventDefault(); // prevent default scrolling
+      e.preventDefault(); // Scrolling in right direction prevent default scroll
 
       is_animating = false; // Stop animations
 
@@ -318,4 +319,3 @@ module.exports = ViewPager;
 window.ViewPager = ViewPager;
 
 },{"./events":1,"./raf":2,"./utils":3}]},{},[4])
-;

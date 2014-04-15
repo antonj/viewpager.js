@@ -23,6 +23,10 @@ var vp = new ViewPager(view_pager_elem, {
   }
 });
 
+// window.addEventListener('mousewheel', function (e) {
+//   console.log('scroll', e.wheelDelta);
+// });
+
 // document.getElementById('prev').addEventListener('click', function () {
 //   vp.previous();
 // });

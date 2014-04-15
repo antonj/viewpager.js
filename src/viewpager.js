@@ -1,9 +1,10 @@
-/*global window, require, module */
+/*global window, console, require, module */
 'use strict';
 
 var utils = require('./utils');
 var raf = require('./raf').requestAnimationFrame;
 var Events = require('./events');
+var debounce = require('./debounce');
 
 function ViewPager(elem, options) {
   options = options || {};
@@ -66,8 +67,9 @@ function ViewPager(elem, options) {
         this.onUp(event);
         break;
        case 'resize':
-        elem_size = elem.offsetWidth;
-        onSizeChanged(elem.offsetWidth, elem.offsetHeight);
+        // console.log('resize outer');
+
+
         break;
       }
     },
@@ -221,7 +223,15 @@ function ViewPager(elem, options) {
   }
 
   Events.add(elem, ev_start_name, events);
-  Events.add(window, 'resize', events);
+  Events.add(window, 'resize', debounce(function () {
+    elem_size = elem.offsetWidth;
+    console.log('resize');
+    onSizeChanged(elem.offsetWidth, elem.offsetHeight);
+  }, 100));
+  Events.add(window, 'mousewheel', debounce(function (e) {
+    // events
+    console.log('scroll ', e.wheelDelta < 0 ? 'up' : 'down');
+  }, 50));
 
   /** move_diff_pxe API */
   return {

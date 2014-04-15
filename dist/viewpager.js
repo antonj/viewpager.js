@@ -1,4 +1,32 @@
-(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+;(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+/*global module, setTimeout, clearTimeout, window*/
+'use strict';
+
+// debouncing function from John Hann
+// http://unscriptable.com/index.php/2009/03/20/debouncing-javascript-methods/
+module.exports = function (func, threshold, execAsap) {
+  var timeout;
+  
+  return function debounced () {
+    var obj = this, args = arguments;
+    function delayed () {
+      if (!execAsap)
+        func.apply(obj, args);
+      timeout = null;
+    }
+    
+    if (timeout) {
+      clearTimeout(timeout);
+    } else if (execAsap) {
+      func.apply(obj, args);
+    }
+
+    timeout = setTimeout(delayed, threshold || 100);
+  };
+};
+
+
+},{}],2:[function(require,module,exports){
 /*global module*/
 'use strict';
 
@@ -24,7 +52,7 @@ module.exports = {
   }
 };
 
-},{}],2:[function(require,module,exports){
+},{}],3:[function(require,module,exports){
 /*global module, clearTimeout, window*/
 'use strict';
 
@@ -60,7 +88,7 @@ if (!window.cancelAnimationFrame) {
 module.exports.requestAnimationFrame = window.requestAnimationFrame;
 module.exports.cancelAnimationFrame = window.cancelAnimationFrame;
 
-},{}],3:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 /*global module*/
 'use strict';
 
@@ -79,13 +107,14 @@ module.exports = {
   }
 };
 
-},{}],4:[function(require,module,exports){
-/*global window, require, module */
+},{}],5:[function(require,module,exports){
+/*global window, console, require, module */
 'use strict';
 
 var utils = require('./utils');
 var raf = require('./raf').requestAnimationFrame;
 var Events = require('./events');
+var debounce = require('./debounce');
 
 function ViewPager(elem, options) {
   options = options || {};
@@ -148,8 +177,9 @@ function ViewPager(elem, options) {
         this.onUp(event);
         break;
        case 'resize':
-        elem_size = elem.offsetWidth;
-        onSizeChanged(elem.offsetWidth, elem.offsetHeight);
+        // console.log('resize outer');
+
+
         break;
       }
     },
@@ -303,7 +333,15 @@ function ViewPager(elem, options) {
   }
 
   Events.add(elem, ev_start_name, events);
-  Events.add(window, 'resize', events);
+  Events.add(window, 'resize', debounce(function () {
+    elem_size = elem.offsetWidth;
+    console.log('resize');
+    onSizeChanged(elem.offsetWidth, elem.offsetHeight);
+  }, 100));
+  Events.add(window, 'mousewheel', debounce(function (e) {
+    // events
+    console.log('scroll ', e.wheelDelta < 0 ? 'up' : 'down');
+  }, 50));
 
   /** move_diff_pxe API */
   return {
@@ -319,4 +357,5 @@ function ViewPager(elem, options) {
 module.exports = ViewPager;
 window.ViewPager = ViewPager;
 
-},{"./events":1,"./raf":2,"./utils":3}]},{},[4])
+},{"./debounce":1,"./events":2,"./raf":3,"./utils":4}]},{},[5])
+;

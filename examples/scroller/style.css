@@ -8,8 +8,8 @@ html, body {
 #area {
    position: absolute;
    background: #ddd;
-   width: 60%;
-   height: 70%;
+   width: 90%;
+   height: 90%;
 }
 
 #box {

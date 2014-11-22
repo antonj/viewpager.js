@@ -272,6 +272,29 @@ function Scroller(interpolator, flywheel) {
   }
 
 
+  
+  /**
+   * Returns the current velocity.
+   *
+   * @return The original velocity less the deceleration. Result may be
+   * negative.
+   */
+  // public float getCurrVelocity() {
+  function getCurrVelocity() {
+    return mMode === FLING_MODE ?
+      mCurrVelocity : mVelocity - mDeceleration * timePassed() / 2000.0;
+  }
+
+  /**
+   * Returns the time elapsed since the beginning of the scrolling.
+   *
+   * @return The elapsed time in milliseconds.
+   */
+  // public int timePassed() {
+  function timePassed() {
+    return currentAnimationTimeMillis() - mStartTime;
+  };  
+  
   return {
     /**
      *
@@ -344,11 +367,7 @@ function Scroller(interpolator, flywheel) {
      * @return The original velocity less the deceleration. Result may be
      * negative.
      */
-    // public float getCurrVelocity() {
-    getCurrVelocity : function getCurrVelocity() {
-      return mMode === FLING_MODE ?
-        mCurrVelocity : mVelocity - mDeceleration * timePassed() / 2000.0;
-    },
+    getCurrVelocity : getCurrVelocity,
 
     /**
      * Returns the start X offset in the scroll.
@@ -607,9 +626,7 @@ function Scroller(interpolator, flywheel) {
      * @return The elapsed time in milliseconds.
      */
     // public int timePassed() {
-    timePassed : function timePassed() {
-      return currentAnimationTimeMillis() - mStartTime;
-    },
+    timePassed : timePassed,
 
     /**
      * Sets the final position (X) for this scroller.

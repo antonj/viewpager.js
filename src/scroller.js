@@ -72,6 +72,10 @@ function Scroller(interpolator, flywheel) {
     return Date.now();
   }
 
+  function signum(num) {
+    return num ? num < 0 ? -1 : 1 :0;
+  }
+
   /** private int */
   var mMode;
 
@@ -526,8 +530,8 @@ function Scroller(interpolator, flywheel) {
 
         var oldVelocityX = ndx * oldVel;
         var oldVelocityY = ndy * oldVel;
-        if (Math.signum(velocityX) === Math.signum(oldVelocityX) &&
-            Math.signum(velocityY) === Math.signum(oldVelocityY)) {
+        if (signum(velocityX) === signum(oldVelocityX) &&
+            signum(velocityY) === signum(oldVelocityY)) {
           velocityX += oldVelocityX;
           velocityY += oldVelocityY;
         }
@@ -549,7 +553,7 @@ function Scroller(interpolator, flywheel) {
 
       var totalDistance = getSplineFlingDistance(velocity);
       // NOTE (int) cast
-      mDistance = Math.floor(totalDistance * Math.signum(velocity));
+      mDistance = Math.floor(totalDistance * signum(velocity));
 
       mMinX = minX;
       mMaxX = maxX;
@@ -640,8 +644,8 @@ function Scroller(interpolator, flywheel) {
      */
     // public boolean isScrollingInDirection(float xvel, float yvel) {
     isScrollingInDirection : function isScrollingInDirection(xvel, yvel) {
-      return !mFinished && Math.signum(xvel) === Math.signum(mFinalX - mStartX) &&
-        Math.signum(yvel) === Math.signum(mFinalY - mStartY);
+      return !mFinished && signum(xvel) === signum(mFinalX - mStartX) &&
+        signum(yvel) === signum(mFinalY - mStartY);
     }
   };
 }

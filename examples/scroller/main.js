@@ -8,7 +8,12 @@ var h = area.offsetHeight;
 console.log(w, h);
 
 var scroller = new Scroller();
-scroller.startScroll(0, 0, w, h, 2000);
+// scroller.startScroll(0, 0, w, h, 2000);
+
+scroller.fling(0, 0, // startx, starty
+               1000, 500, //velocityX, velocityY,
+               0, w, //minX, maxX,
+               0, h); //minY, maxY);
 
 function update() {
   var animating = scroller.computeScrollOffset();

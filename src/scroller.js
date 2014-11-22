@@ -65,7 +65,7 @@
  * }</pre>
  */
 
-function Scroller (interpolator, flywheel) {
+function Scroller(interpolator, flywheel) {
 
   var GRAVITY_EARTH = 9.80665;
   function currentAnimationTimeMillis() {
@@ -219,7 +219,7 @@ function Scroller (interpolator, flywheel) {
     // mPpi = context.getResources().getDisplayMetrics().density * 160.0f;
     mPpi = 1 * 160;
     mDeceleration = computeDeceleration(mFlingFriction);
-    mFlywheel = flywheel;
+    mFlywheel = true; //flywheel; NOTE always flywheel
 
     mPhysicalCoeff = computeDeceleration(0.84); // look and feel tuning
   }

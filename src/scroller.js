@@ -276,10 +276,10 @@ function Scroller (interpolator, flywheel) {
      * @return True if the scroller has finished scrolling, false otherwise.
      */
     // public final boolean isFinished() {
-    function isFinished() {
+    isFinished : function isFinished() {
       return mFinished;
-    }
-
+    },
+    
 
     /**
      * The amount of friction applied to flings. The default value
@@ -289,10 +289,10 @@ function Scroller (interpolator, flywheel) {
      *         friction.
      */
     // public final void setFriction(float friction) {
-    function setFriction(friction) {
+    setFriction : function setFriction(friction) {
       mDeceleration = computeDeceleration(friction);
       mFlingFriction = friction;
-    }
+    },
 
     /**
      * Force the finished field to a particular value.
@@ -300,9 +300,9 @@ function Scroller (interpolator, flywheel) {
      * @param finished The new finished value.
      */
     // public final void forceFinished(boolean finished) {
-    function forceFinished(finished) {
+    forceFinished : function forceFinished(finished) {
       mFinished = finished;
-    }
+    },
 
     /**
      * Returns how long the scroll event will take, in milliseconds.
@@ -310,9 +310,9 @@ function Scroller (interpolator, flywheel) {
      * @return The duration of the scroll in milliseconds.
      */
     // public final int getDuration() {
-    function getDuration() {
+    getDuration : function getDuration() {
       return mDuration;
-    }
+    },
 
     /**
      * Returns the current X offset in the scroll.
@@ -320,9 +320,9 @@ function Scroller (interpolator, flywheel) {
      * @return The new X offset as an absolute distance from the origin.
      // public final int getCurrX() {
      */
-    function getCurrX() {
+    getCurrX : function getCurrX() {
       return mCurrX;
-    }
+    },
 
     /**
      * Returns the current Y offset in the scroll.
@@ -330,9 +330,9 @@ function Scroller (interpolator, flywheel) {
      * @return The new Y offset as an absolute distance from the origin.
      */
     // public final int getCurrY() {
-    function getCurrY() {
+    getCurrY : function getCurrY() {
       return mCurrY;
-    }
+    },
 
     /**
      * Returns the current velocity.
@@ -341,10 +341,10 @@ function Scroller (interpolator, flywheel) {
      * negative.
      */
     // public float getCurrVelocity() {
-    function getCurrVelocity() {
+    getCurrVelocity : function getCurrVelocity() {
       return mMode === FLING_MODE ?
         mCurrVelocity : mVelocity - mDeceleration * timePassed() / 2000.0;
-    }
+    },
 
     /**
      * Returns the start X offset in the scroll.
@@ -352,9 +352,9 @@ function Scroller (interpolator, flywheel) {
      * @return The start X offset as an absolute distance from the origin.
      */
     // public final int getStartX() {
-    function getStartX() {
+    getStartX : function getStartX() {
       return mStartX;
-    }
+    },
 
     /**
      * Returns the start Y offset in the scroll.
@@ -362,9 +362,9 @@ function Scroller (interpolator, flywheel) {
      * @return The start Y offset as an absolute distance from the origin.
      */
     // public final int getStartY() {
-    function getStartY() {
+    getStartY : function getStartY() {
       return mStartY;
-    }
+    },
 
     /**
      * Returns where the scroll will end. Valid only for "fling" scrolls.
@@ -372,9 +372,9 @@ function Scroller (interpolator, flywheel) {
      * @return The final X offset as an absolute distance from the origin.
      */
     // public final int getFinalX() {
-    function getFinalX() {
+    getFinalX : function getFinalX() {
       return mFinalX;
-    }
+    },
 
     /**
      * Returns where the scroll will end. Valid only for "fling" scrolls.
@@ -382,16 +382,16 @@ function Scroller (interpolator, flywheel) {
      * @return The final Y offset as an absolute distance from the origin.
      */
     // public final int getFinalY() {
-    function getFinalY() {
+    getFinalY : function getFinalY() {
       return mFinalY;
-    }
+    },
 
     /**
      * Call this when you want to know the new location.  If it returns true,
      * the animation is not yet finished.
      */
     // public boolean computeScrollOffset() {
-    function computeScrollOffset() {
+    computeScrollOffset : function computeScrollOffset() {
       if (mFinished) {
         return false;
       }
@@ -460,26 +460,7 @@ function Scroller (interpolator, flywheel) {
         mFinished = true;
       }
       return true;
-    }
-
-    /**
-     * Start scrolling by providing a starting point and the distance to travel.
-     * The scroll will use the default value of 250 milliseconds for the
-     * duration.
-     *
-     * @param startX Starting horizontal scroll offset in pixels. Positive
-     *        numbers will scroll the content to the left.
-     * @param startY Starting vertical scroll offset in pixels. Positive numbers
-     *        will scroll the content up.
-     * @param dx Horizontal distance to travel. Positive numbers will scroll the
-     *        content to the left.
-     * @param dy Vertical distance to travel. Positive numbers will scroll the
-     *        content up.
-     */
-    // public void startScroll(int startX, int startY, int dx, int dy) {
-    function startScroll(startX, startY, dx, dy) {
-      startScroll(startX, startY, dx, dy, DEFAULT_DURATION);
-    }
+    },
 
     /**
      * Start scrolling by providing a starting point, the distance to travel,
@@ -496,10 +477,10 @@ function Scroller (interpolator, flywheel) {
      * @param duration Duration of the scroll in milliseconds.
      */
     // public void startScroll(int startX, int startY, int dx, int dy, int duration) {
-    function startScroll(startX, startY, dx, dy, duration) {
+    startScroll : function startScroll(startX, startY, dx, dy, duration) {
       mMode = SCROLL_MODE;
       mFinished = false;
-      mDuration = duration;
+      mDuration = duration === undefined ? DEFAULT_DURATION : duration;
       mStartTime = currentAnimationTimeMillis();
       mStartX = startX;
       mStartY = startY;
@@ -508,7 +489,7 @@ function Scroller (interpolator, flywheel) {
       mDeltaX = dx;
       mDeltaY = dy;
       mDurationReciprocal = 1.0 / mDuration;
-    }
+    },
 
     /**
      * Start scrolling based on a fling gesture. The distance travelled will
@@ -531,7 +512,7 @@ function Scroller (interpolator, flywheel) {
      */
     // public void fling(int startX, int startY, int velocityX, int velocityY,
     //                   int minX, int maxX, int minY, int maxY) {
-    function fling(startX, startY, velocityX, velocityY, minX, maxX, minY, maxY) {
+    fling : function fling(startX, startY, velocityX, velocityY, minX, maxX, minY, maxY) {
       // Continue a scroll or fling in progress
       if (mFlywheel && !mFinished) {
         var oldVel = getCurrVelocity();
@@ -584,7 +565,7 @@ function Scroller (interpolator, flywheel) {
       // Pin to mMinY <= mFinalY <= mMaxY
       mFinalY = Math.min(mFinalY, mMaxY);
       mFinalY = Math.max(mFinalY, mMinY);
-    }
+    },
 
     /**
      * Stops the animation. Contrary to {@link #forceFinished(boolean)},
@@ -594,11 +575,11 @@ function Scroller (interpolator, flywheel) {
      * @see #forceFinished(boolean)
      */
     // public void abortAnimation() {
-    function abortAnimation() {
+    abortAnimation : function abortAnimation() {
       mCurrX = mFinalX;
       mCurrY = mFinalY;
       mFinished = true;
-    }
+    },
 
     /**
      * Extend the scroll animation. This allows a running animation to scroll
@@ -609,12 +590,12 @@ function Scroller (interpolator, flywheel) {
      * @see #setFinalY(int)
      */
     // public void extendDuration(int extend) {
-    function extendDuration(extend) {
+    extendDuration : function extendDuration(extend) {
       var passed = timePassed();
       mDuration = passed + extend;
       mDurationReciprocal = 1.0 / mDuration;
       mFinished = false;
-    }
+    },
 
     /**
      * Returns the time elapsed since the beginning of the scrolling.
@@ -622,9 +603,9 @@ function Scroller (interpolator, flywheel) {
      * @return The elapsed time in milliseconds.
      */
     // public int timePassed() {
-    function timePassed() {
+    timePassed : function timePassed() {
       return currentAnimationTimeMillis() - mStartTime;
-    }
+    },
 
     /**
      * Sets the final position (X) for this scroller.
@@ -634,11 +615,11 @@ function Scroller (interpolator, flywheel) {
      * @see #setFinalY(int)
      */
     // public void setFinalX(int newX) {
-    function setFinalX(newX) {
+    setFinalX : function setFinalX(newX) {
       mFinalX = newX;
       mDeltaX = mFinalX - mStartX;
       mFinished = false;
-    }
+    },
 
     /**
      * Sets the final position (Y) for this scroller.
@@ -648,19 +629,19 @@ function Scroller (interpolator, flywheel) {
      * @see #setFinalX(int)
      */
     // public void setFinalY(int newY) {
-    function setFinalY(newY) {
+    setFinalY : function setFinalY(newY) {
       mFinalY = newY;
       mDeltaY = mFinalY - mStartY;
       mFinished = false;
-    }
+    },
 
     /**
      * @hide
      */
     // public boolean isScrollingInDirection(float xvel, float yvel) {
-    function isScrollingInDirection(xvel, yvel) {
+    isScrollingInDirection : function isScrollingInDirection(xvel, yvel) {
       return !mFinished && Math.signum(xvel) === Math.signum(mFinalX - mStartX) &&
         Math.signum(yvel) === Math.signum(mFinalY - mStartY);
     }
-  }
+  };
 }

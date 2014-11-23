@@ -66,9 +66,6 @@ function createTwoDimArray(m, n) {
     var x = new Array(m);
     for (var i = 0; i < m; i++) {
         x[i] = new Array(n);
-        for (var j = 0; j < n; j++) {
-            x[i][j] = 0;
-        }
     }
     return x;
 }
@@ -86,11 +83,6 @@ function VelocityTracker() {
         mIndex = 0;
         positions[0] = undefined;
     }
-
-    function calcWeight() {
-
-    }
-
 
     /**
      * Solves a linear least squares problem to obtain a N degree polynomial that fits

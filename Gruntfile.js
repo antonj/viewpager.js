@@ -23,9 +23,13 @@ module.exports = function (grunt) {
 
     browserify: {
       js: {
+        options: {
+          standalone: 'ViewPager'
+        },
         src: 'src/viewpager.js',
         dest: 'dist/viewpager.js'
       }
+
     },
 
     watch: {

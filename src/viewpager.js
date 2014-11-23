@@ -235,4 +235,3 @@ function ViewPager(elem, options) {
 }
 
 module.exports = ViewPager;
-window.ViewPager = ViewPager;

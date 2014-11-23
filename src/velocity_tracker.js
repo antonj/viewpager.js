@@ -35,6 +35,11 @@ function Estimator() {
     };
 }
 
+function log(x) {
+    console.log(
+        JSON.stringify(x));
+}
+
 function vectorToString(a) {
     return "[" + a.join(",") + "]";
 }
@@ -52,8 +57,7 @@ function vectorNorm(va) {
     var r = 0;
     var i = va.length;
     while (i--) {
-        var t = va[i];
-        r += t * t;
+        r += va[i] * va[i];
     }
     return Math.sqrt(r);
 }
@@ -62,6 +66,9 @@ function createTwoDimArray(m, n) {
     var x = new Array(m);
     for (var i = 0; i < m; i++) {
         x[i] = new Array(n);
+        for (var j = 0; j < n; j++) {
+            x[i][j] = 0;
+        }
     }
     return x;
 }
@@ -158,7 +165,8 @@ function VelocityTracker() {
         }
         // #if DEBUG_STRATEGY
         // ALOGD("  - a=%s", matrixToString(&a[0][0], m, n, false /*rowMajor*/).string());
-        console.log("  - a", a);
+        // console.log("  - a", a);
+        log({a : a});
         // #endif
 
         // Apply the Gram-Schmidt process to A to obtain its QR decomposition.
@@ -166,18 +174,22 @@ function VelocityTracker() {
         var q = createTwoDimArray(n, m);
         // float r[n][n]; // upper triangular matrix, row-major order
         var r = createTwoDimArray(n, n);
+        console.log('looping', n, m);
         for (var j = 0; j < n; j++) {
             for (var h = 0; h < m; h++) {
                 q[j][h] = a[j][h];
             }
             for (var i = 0; i < j; i++) {
-                var dot = vectorDot(q[j][0], q[i][0]);
+                var dot = vectorDot(q[j], q[i]);
+                console.log('dot', q[j], q[i], m);
                 for (var h = 0; h < m; h++) {
                     q[j][h] -= dot * q[i][h];
                 }
             }
 
-            var norm = vectorNorm(q[j][0]);
+            log({q : q});
+            var norm = vectorNorm(q[j], m);
+            console.log('norm', norm, m, q[j][0]);
             if (norm < 0.000001) {
                 // vectors are linearly dependent or zero so no solution
                 // #if DEBUG_STRATEGY
@@ -191,8 +203,9 @@ function VelocityTracker() {
                 q[j][h] *= invNorm;
             }
             for (var i = 0; i < n; i++) {
-                r[j][i] = i < j ? 0 : vectorDot(q[j][0], a[i][0]);
+                r[j][i] = i < j ? 0 : vectorDot(q[j], a[i]);
             }
+            log({r : r});
         }
         // #if DEBUG_STRATEGY
         console.log("  - q=> ", q[0][0]);
@@ -218,7 +231,7 @@ function VelocityTracker() {
             wy[h] = y[h] * w[h];
         }
         for (var i = n; i-- != 0; ) {
-            outB[i] = vectorDot(q[i][0], wy, m);
+            outB[i] = vectorDot(q[i], wy, m);
             for (var j = n - 1; j > i; j--) {
                 outB[i] -= r[i][j] * outB[j];
             }

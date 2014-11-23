@@ -6,6 +6,11 @@
 // velocity after the pointer starts moving again.
 var ASSUME_POINTER_STOPPED_TIME_MS = 40;
 
+var HISTORY_SIZE = 5;
+var HORIZON_MS = 200;
+
+var DEBUG = false;
+
 function Estimator() {
     return {
         MAX_DEGREE : 4,
@@ -73,9 +78,6 @@ function createTwoDimArray(m, n) {
 function VelocityTracker() {
     var last_timestamp_ms = 0;
 
-    var HISTORY_SIZE = 20;
-    var HORIZON_MS = 200;
-
     var positions = new Array(HISTORY_SIZE);
     var mIndex = 0;
 
@@ -135,16 +137,16 @@ function VelocityTracker() {
      */
     function solveLeastSquares(x, y, w,
                                m,  n, outB, outDet) {
-        // #if DEBUG_STRATEGY
-        console.log("solveLeastSquares: ",
-                    "m => ", m,
-                    "n => ", n,
-                    "x => ", x,
-                    "y => ", y,
-                    "w => ", w,
-                    "outB =>", outB,
-                    "outDet =>", outDet);
-        // #endif
+        if (DEBUG) {
+            console.log("solveLeastSquares: ",
+                        "m => ", m,
+                        "n => ", n,
+                        "x => ", x,
+                        "y => ", y,
+                        "w => ", w,
+                        "outB =>", outB,
+                        "outDet =>", outDet);
+        }
 
         // Expand the X vector to a matrix A, pre-multiplied by the weights.
         // float a[n][m]; // column-major order
@@ -155,38 +157,36 @@ function VelocityTracker() {
                 a[i][h] = a[i - 1][h] * x[h];
             }
         }
-        // #if DEBUG_STRATEGY
-        // ALOGD("  - a=%s", matrixToString(&a[0][0], m, n, false /*rowMajor*/).string());
-        // console.log("  - a", a);
-        log({a : a});
-        // #endif
+        if (DEBUG) {
+            log({a : a});
+        }
 
         // Apply the Gram-Schmidt process to A to obtain its QR decomposition.
         // float q[n][m]; // orthonormal basis, column-major order
         var q = createTwoDimArray(n, m);
         // float r[n][n]; // upper triangular matrix, row-major order
         var r = createTwoDimArray(n, n);
-        console.log('looping', n, m);
         for (var j = 0; j < n; j++) {
             for (var h = 0; h < m; h++) {
                 q[j][h] = a[j][h];
             }
             for (var i = 0; i < j; i++) {
                 var dot = vectorDot(q[j], q[i]);
-                console.log('dot', q[j], q[i], m);
                 for (var h = 0; h < m; h++) {
                     q[j][h] -= dot * q[i][h];
                 }
             }
 
-            log({q : q});
             var norm = vectorNorm(q[j], m);
-            console.log('norm', norm, m, q[j][0]);
+            if (DEBUG) {
+                log({q : q});
+                console.log('norm', norm, m, q[j][0]);
+            }
             if (norm < 0.000001) {
                 // vectors are linearly dependent or zero so no solution
-                // #if DEBUG_STRATEGY
-                console.log("  - no solution, norm=%f", norm);
-                // #endif
+                if (DEBUG) {
+                    console.log("  - no solution, norm=%f", norm);
+                }
                 return false;
             }
 
@@ -197,24 +197,24 @@ function VelocityTracker() {
             for (var i = 0; i < n; i++) {
                 r[j][i] = i < j ? 0 : vectorDot(q[j], a[i]);
             }
-            log({r : r});
         }
-        // #if DEBUG_STRATEGY
-        console.log("  - q=> ", q[0][0]);
-        console.log("  - r=> ", r[0][0]);
-
-        // calculate QR, if we factored A correctly then QR should equal A
-        var qr = createTwoDimArray(n, m);
-        for (var h = 0; h < m; h++) {
-            for (var i = 0; i < n; i++) {
-                qr[i][h] = 0;
-                for (var j = 0; j < n; j++) {
-                    qr[i][h] += q[j][h] * r[j][i];
+        
+        if (DEBUG) {
+            console.log("  - q=> ", q[0][0]);
+            console.log("  - r=> ", r[0][0]);
+            
+            // calculate QR, if we factored A correctly then QR should equal A
+            var qr = createTwoDimArray(n, m);
+            for (var h = 0; h < m; h++) {
+                for (var i = 0; i < n; i++) {
+                    qr[i][h] = 0;
+                    for (var j = 0; j < n; j++) {
+                        qr[i][h] += q[j][h] * r[j][i];
+                    }
                 }
             }
-        }
-        console.log("  - qr=%s",qr[0][0]);
-        // #endif
+            console.log("  - qr=%s",qr[0][0]);
+        } // End DEBUG
 
         // Solve R B = Qt W Y to find B.  This is easy because R is upper triangular.
         // We just work from bottom-right to top-left calculating B's coefficients.
@@ -229,9 +229,10 @@ function VelocityTracker() {
             }
             outB[i] /= r[i][i];
         }
-        // #if DEBUG_STRATEGY
-        console.log("  - b=%s", outB);
-        // #endif
+        
+        if (DEBUG) {
+            console.log("  - b=%s", outB);
+        }
 
         // Calculate the coefficient of determination as 1 - (SSerr / SStot) where
         // SSerr is the residual sum of squares (variance of the error),
@@ -257,13 +258,14 @@ function VelocityTracker() {
             sstot += w[h] * w[h] * vari * vari;
         }
         outDet.confidence = sstot > 0.000001 ? 1.0 - (sserr / sstot) : 1;
-        // #if DEBUG_STRATEGY
-        console.log(
-            "  - sserr => ", sserr,
-            "  - sstot => ", sstot,
-            "  - det => ", outDet
-        );
-        // #endif
+        
+        if (DEBUG) {
+            console.log(
+                "  - sserr => ", sserr,
+                "  - sstot => ", sstot,
+                "  - det => ", outDet
+            );
+        }
         return true;
     }
 
@@ -286,16 +288,17 @@ function VelocityTracker() {
         var m = 0;
         var index = mIndex;
         var newestMovement = positions[mIndex];
+        if (newestMovement === undefined) {
+            return false;
+        }
         do {
             var movement = positions[index];
-            console.log('movement', movement);
-            // if (!movement.idBits.hasBit(id)) {
-            //     break;
-            // }
+            if (!movement) {
+                break;
+            }
 
             var age = newestMovement.timestamp - movement.timestamp;
             if (age > HORIZON_MS) {
-                console.log('old data');
                 break; // Old
             }
 
@@ -325,19 +328,22 @@ function VelocityTracker() {
                 outEstimator.time = newestMovement.eventTime;
                 outEstimator.degree = degree;
                 outEstimator.confidence = xdet.confidence * ydet.confidence;
-                // #if DEBUG_STRATEGY
-                console.log("Estimate: ",
-                            "degree", outEstimator.degree,
-                            "xCoeff", outEstimator.xCoeff,
-                            "yCoeff", outEstimator.yCoeff,
-                            "confidence", outEstimator.confidence);
-                // #endif
+                
+                if (DEBUG) {
+                    console.log("Estimate: ",
+                                "degree", outEstimator.degree,
+                                "xCoeff", outEstimator.xCoeff,
+                                "yCoeff", outEstimator.yCoeff,
+                                "confidence", outEstimator.confidence);
+                }
                 return true;
             }
         }
 
         // No velocity data available for this pointer, but we do have its current position.
-        console.log("velocity data available for this pointer, but we do have its current position.");
+        if (DEBUG) {
+            console.log("velocity data available for this pointer, but we do have its current position.");
+        }
         outEstimator.xCoeff[0] = x[0];
         outEstimator.yCoeff[0] = y[0];
         outEstimator.time = newestMovement.eventTime;
@@ -352,8 +358,9 @@ function VelocityTracker() {
             // 2 polynomial estimatorn
             if (getEstimator(estimator, 2) && estimator.degree >= 1) {
                 return {
-                    outVx : estimator.xCoeff[1],
-                    outVy : estimator.yCoeff[1]
+                    unit : "px / ms",
+                    vx : estimator.xCoeff[1],
+                    vy : estimator.yCoeff[1]
                 };
             }
             return estimator;
@@ -371,7 +378,9 @@ function VelocityTracker() {
             if (pos.timestamp_ms >= last_timestamp_ms + ASSUME_POINTER_STOPPED_TIME_MS) {
                 // We have not received any movements for too long.  Assume that all pointers
                 // have stopped.
-                console.log('no movements assume stop');
+                if (DEBUG) {
+                    console.log('no movements assume stop');
+                }
                 // TODO strategy clear
             }
             last_timestamp_ms = pos.timestamp_ms;

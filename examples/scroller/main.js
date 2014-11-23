@@ -9,6 +9,8 @@ var context = canvas.getContext('2d');
 
 var w = area.offsetWidth;
 var h = area.offsetHeight;
+var cx = w / 2;
+var cy = h / 2;
 canvas.width = w;
 canvas.height = h;
 
@@ -55,6 +57,16 @@ function update() {
     context.fill();
     context.closePath();
   });
+
+  // Velo
+  var v = vtracker.getVelocity();
+  context.beginPath();
+  context.moveTo(cx, cy);
+  context.lineTo(cx + v.vx * 100,
+
+                 cy + v.vy * 100);
+  context.stroke();
+  
   
   // if (animating) {
   requestAnimationFrame(update);
@@ -117,11 +129,14 @@ function mouseListener() {
 
   function fling(vx, vy) {
     if (Math.abs(vy) > MINIMUM_FLING_VELOCITY || Math.abs(vx) > MINIMUM_FLING_VELOCITY) {
-      console.log(vtracker.getVelocity());
+      var v = vtracker.getVelocity();
+      console.log("velo" , vtracker.getVelocity());
+      console.log("vx, vy" , vx, vy);
       scroller.fling(position.x, position.y, // startx, starty
-                     vx, vy, //velocityX, velocityY,
-                     0, w, //minX, maxX,
-                     0, h); //minY, maxY);
+                     // vx, vy, //velocityX, velocityY,
+                     v.vx * 1000, v.vy * 1000, //velocityX, velocityY,
+                     -Number.MAX_VALUE, Number.MAX_VALUE, //minX, maxX,
+                     -Number.MAX_VALUE, Number.MAX_VALUE); //minY, maxY);
     }
   }
   

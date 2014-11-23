@@ -1,13 +1,21 @@
-/*global Scroller, setTimeout, requestAnimationFrame*/
+/*global Scroller, VelocityTracker, setTimeout, requestAnimationFrame*/
+
+var MINIMUM_FLING_VELOCITY = 50;
 
 var box = document.getElementById('box');
 var area = document.getElementById('area');
+var canvas = document.getElementById('canvas');
+var context = canvas.getContext('2d');
 
 var w = area.offsetWidth;
 var h = area.offsetHeight;
+canvas.width = w;
+canvas.height = h;
+
 console.log(w, h);
 
 var scroller = new Scroller();
+var vtracker = new VelocityTracker();
 var position = {x: 0, y: 0};
 scroller.startScroll(0, 0, w, h, 6000);
 
@@ -23,7 +31,7 @@ setTimeout(function () {
                  200, 500, //velocityX, velocityY,
                  0, w, //minX, maxX,
                  0, h); //minY, maxY);
-}, 2000);
+}, 1100);
 
 function update() {
   var animating = scroller.computeScrollOffset();
@@ -34,11 +42,20 @@ function update() {
     position.x = scroller.getCurrX();
     position.y = scroller.getCurrY();
   }
-  
   box.style['-webkit-transform'] = 'translate3d('
     + position.x + 'px, '
     + position.y + 'px, '
     + ' 0px)';
+
+  context.clearRect ( 0 , 0 , canvas.width, canvas.height );
+  vtracker.getPositions().forEach(function (p) {
+    context.beginPath();
+    context.arc(p.x, p.y, 2, 0, 2 * Math.PI, false);
+    context.fillStyle = 'red';
+    context.fill();
+    context.closePath();
+  });
+  
   // if (animating) {
   requestAnimationFrame(update);
   // }
@@ -81,6 +98,7 @@ function mouseListener() {
         var p = ('ontouchstart' in window)
               ? {x : e.touches[0].pageX, y : e.touches[0].pageY, timestamp : e.timeStamp}
             : {x : e.pageX, y : e.pageY, timestamp : e.timeStamp};
+        vtracker.addMovement(p);
         position.x = p.x;
         position.y = p.y;
         m_dx = p.x - m_prev_point.x;
@@ -98,12 +116,15 @@ function mouseListener() {
   };
 
   function fling(vx, vy) {
-    scroller.fling(position.x, position.y, // startx, starty
-                   vx, vy, //velocityX, velocityY,
-                   0, w, //minX, maxX,
-                   0, h); //minY, maxY);
+    if (Math.abs(vy) > MINIMUM_FLING_VELOCITY || Math.abs(vx) > MINIMUM_FLING_VELOCITY) {
+      console.log(vtracker.getVelocity());
+      scroller.fling(position.x, position.y, // startx, starty
+                     vx, vy, //velocityX, velocityY,
+                     0, w, //minX, maxX,
+                     0, h); //minY, maxY);
+    }
   }
-
+  
   area.addEventListener('mousedown', events);
   area.addEventListener('mousemove', events);
   area.addEventListener('mouseup', events);

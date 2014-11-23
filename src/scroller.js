@@ -3,6 +3,8 @@
 
 
 /*
+ * Port of Android Scroller http://developer.android.com/reference/android/widget/Scroller.html
+ *
  * Copyright (C) 2006 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -64,10 +66,10 @@
  *    ...
  * }</pre>
  */
-
 function Scroller(interpolator, flywheel) {
 
   var GRAVITY_EARTH = 9.80665;
+  
   function currentAnimationTimeMillis() {
     return Date.now();
   }
@@ -231,10 +233,10 @@ function Scroller(interpolator, flywheel) {
 
   // private float computeDeceleration(float friction) {
   function computeDeceleration(friction) {
-    return GRAVITY_EARTH   // g (m/s^2)
-      * 39.37               // inch/meter
-      * mPpi                 // pixels per inch
-      * friction;
+    return (GRAVITY_EARTH * // g (m/s^2)
+            39.37 *         // inch/meter
+            mPpi *          // pixels per inch
+            friction);
   }
 
   // private double getSplineDeceleration(float velocity) {
@@ -293,7 +295,7 @@ function Scroller(interpolator, flywheel) {
   // public int timePassed() {
   function timePassed() {
     return currentAnimationTimeMillis() - mStartTime;
-  };  
+  }
   
   return {
     /**

@@ -1,85 +1,112 @@
-/*global window, require, module */
+/*global require, module, console */
 'use strict';
-// Threshold for determining that a pointer has stopped moving.
-// Some input devices do not send ACTION_MOVE events in the case where a pointer has
-// stopped.  We need to detect this case so that we can accurately predict the
-// velocity after the pointer starts moving again.
-var ASSUME_POINTER_STOPPED_TIME_MS = 40;
 
-var HISTORY_SIZE = 5;
-var HORIZON_MS = 200;
-
-var DEBUG = false;
-
-function Estimator() {
-    return {
-        MAX_DEGREE : 4,
-        // Estimator time base.
-        time : 0,
-
-        // Polynomial coefficients describing motion in X and Y.
-        xCoeff : new Array(4 + 1), // MAX_DEGREE + 1
-        yCoeff : new Array(4 + 1),
-
-        // Polynomial degree (number of coefficients), or zero if no information is
-        // available.
-        degree : 2,
-
-        // Confidence (coefficient of determination), between 0 (no fit) and 1 (perfect fit).
-        confidence : 0,
-
-        clear : function clear() {
-            this.time = 0;
-            this.degree = 0;
-            this.confidence = 0;
-            for (var i = 0; i <= this.MAX_DEGREE; i++) {
-                this.xCoeff[i] = 0;
-                this.yCoeff[i] = 0;
-            }
-        }
-    };
-}
-
-function log(x) {
-    console.log(
-        JSON.stringify(x));
-}
-
-function vectorToString(a) {
-    return "[" + a.join(",") + "]";
-}
-
-function vectorDot(va, vb) {
-    var r = 0;
-    var l = va.length;
-    while (l--) {
-        r += va[l] * vb[l];
-    }
-    return r;
-}
-
-function vectorNorm(va) {
-    var r = 0;
-    var i = va.length;
-    while (i--) {
-        r += va[i] * va[i];
-    }
-    return Math.sqrt(r);
-}
-
-function createTwoDimArray(m, n) {
-    var x = new Array(m);
-    for (var i = 0; i < m; i++) {
-        x[i] = new Array(n);
-    }
-    return x;
-}
-
+/*
+ * Port of the Android VelocityTracker: http://code.metager.de/source/xref/android/4.4/frameworks/native/libs/input/VelocityTracker.cpp
+ *
+ * Original Licence
+ * 
+ * Copyright (C) 2012 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 function VelocityTracker() {
     var last_timestamp_ms = 0;
 
+    /** Movement points to do calcs on */
     var positions = new Array(HISTORY_SIZE);
+
+    /** Index of latest added points in positions */
     var mIndex = 0;
+
+    /** Estimator used */
+    var estimator = new Estimator();
+
+    /**
+     * Threshold for determining that a pointer has stopped moving.
+     * Some input devices do not send ACTION_MOVE events in the case where a pointer has
+     * stopped.  We need to detect this case so that we can accurately predict the
+     * velocity after the pointer starts moving again.
+     */
+    var ASSUME_POINTER_STOPPED_TIME_MS = 40;
+
+    /** Max number of points to use in calculations */
+    var HISTORY_SIZE = 5;
+    
+    /** If points are old don't use in calculations */
+    var HORIZON_MS = 200;
+
+    var DEBUG = false;
+
+    function Estimator() {
+        return {
+            MAX_DEGREE : 4,
+            // Estimator time base.
+            time : 0,
+
+            // Polynomial coefficients describing motion in X and Y.
+            xCoeff : new Array(4 + 1), // MAX_DEGREE + 1
+            yCoeff : new Array(4 + 1),
+
+            // Polynomial degree (number of coefficients), or zero if no information is
+            // available.
+            degree : 2,
+
+            // Confidence (coefficient of determination), between 0 (no fit) and 1 (perfect fit).
+            confidence : 0,
+
+            clear : function clear() {
+                this.time = 0;
+                this.degree = 0;
+                this.confidence = 0;
+                for (var i = 0; i <= this.MAX_DEGREE; i++) {
+                    this.xCoeff[i] = 0;
+                    this.yCoeff[i] = 0;
+                }
+            }
+        };
+    }
+
+    function log(x) {
+        console.log(
+            JSON.stringify(x));
+    }
+
+    function vectorDot(va, vb) {
+        var r = 0;
+        var l = va.length;
+        while (l--) {
+            r += va[l] * vb[l];
+        }
+        return r;
+    }
+
+    function vectorNorm(va) {
+        var r = 0;
+        var i = va.length;
+        while (i--) {
+            r += va[i] * va[i];
+        }
+        return Math.sqrt(r);
+    }
+
+    function createTwoDimArray(m, n) {
+        var x = new Array(m);
+        for (var i = 0; i < m; i++) {
+            x[i] = new Array(n);
+        }
+        return x;
+    }
 
     function clear() {
         mIndex = 0;
@@ -137,6 +164,9 @@ function VelocityTracker() {
      */
     function solveLeastSquares(x, y, w,
                                m,  n, outB, outDet) {
+        // indexes
+        var h, i, j;
+        
         if (DEBUG) {
             console.log("solveLeastSquares: ",
                         "m => ", m,
@@ -151,9 +181,9 @@ function VelocityTracker() {
         // Expand the X vector to a matrix A, pre-multiplied by the weights.
         // float a[n][m]; // column-major order
         var a = createTwoDimArray(n, m);
-        for (var h = 0; h < m; h++) {
+        for (h = 0; h < m; h++) {
             a[0][h] = w[h];
-            for (var i = 1; i < n; i++) {
+            for (i = 1; i < n; i++) {
                 a[i][h] = a[i - 1][h] * x[h];
             }
         }
@@ -166,13 +196,13 @@ function VelocityTracker() {
         var q = createTwoDimArray(n, m);
         // float r[n][n]; // upper triangular matrix, row-major order
         var r = createTwoDimArray(n, n);
-        for (var j = 0; j < n; j++) {
-            for (var h = 0; h < m; h++) {
+        for (j = 0; j < n; j++) {
+            for (h = 0; h < m; h++) {
                 q[j][h] = a[j][h];
             }
-            for (var i = 0; i < j; i++) {
+            for (i = 0; i < j; i++) {
                 var dot = vectorDot(q[j], q[i]);
-                for (var h = 0; h < m; h++) {
+                for (h = 0; h < m; h++) {
                     q[j][h] -= dot * q[i][h];
                 }
             }
@@ -191,10 +221,10 @@ function VelocityTracker() {
             }
 
             var invNorm = 1.0 / norm;
-            for (var h = 0; h < m; h++) {
+            for (h = 0; h < m; h++) {
                 q[j][h] *= invNorm;
             }
-            for (var i = 0; i < n; i++) {
+            for (i = 0; i < n; i++) {
                 r[j][i] = i < j ? 0 : vectorDot(q[j], a[i]);
             }
         }
@@ -205,10 +235,10 @@ function VelocityTracker() {
             
             // calculate QR, if we factored A correctly then QR should equal A
             var qr = createTwoDimArray(n, m);
-            for (var h = 0; h < m; h++) {
-                for (var i = 0; i < n; i++) {
+            for (h = 0; h < m; h++) {
+                for (i = 0; i < n; i++) {
                     qr[i][h] = 0;
-                    for (var j = 0; j < n; j++) {
+                    for (j = 0; j < n; j++) {
                         qr[i][h] += q[j][h] * r[j][i];
                     }
                 }
@@ -219,12 +249,12 @@ function VelocityTracker() {
         // Solve R B = Qt W Y to find B.  This is easy because R is upper triangular.
         // We just work from bottom-right to top-left calculating B's coefficients.
         var wy = new Array(m);
-        for (var h = 0; h < m; h++) {
+        for (h = 0; h < m; h++) {
             wy[h] = y[h] * w[h];
         }
-        for (var i = n; i-- != 0; ) {
+        for (i = n; i-- !== 0; ) {
             outB[i] = vectorDot(q[i], wy, m);
-            for (var j = n - 1; j > i; j--) {
+            for (j = n - 1; j > i; j--) {
                 outB[i] -= r[i][j] * outB[j];
             }
             outB[i] /= r[i][i];
@@ -239,17 +269,17 @@ function VelocityTracker() {
         // and SStot is the total sum of squares (variance of the data) where each
         // has been weighted.
         var ymean = 0;
-        for (var h = 0; h < m; h++) {
+        for (h = 0; h < m; h++) {
             ymean += y[h];
         }
         ymean /= m;
 
         var sserr = 0;
         var sstot = 0;
-        for (var h = 0; h < m; h++) {
+        for (h = 0; h < m; h++) {
             var err = y[h] - outB[0];
             var term = 1;
-            for (var i = 1; i < n; i++) {
+            for (i = 1; i < n; i++) {
                 term *= x[h];
                 err -= term * outB[i];
             }
@@ -277,8 +307,8 @@ function VelocityTracker() {
     /**
      * @param degree Order use 2...
      */
-    function getEstimator(outEstimator, degree) {
-        outEstimator.clear();
+    function prepareEstimator(degree) {
+        estimator.clear();
         
         // Iterate over movement samples in reverse time order and collect samples.
         var x = new Array(HISTORY_SIZE);
@@ -299,7 +329,7 @@ function VelocityTracker() {
 
             var age = newestMovement.timestamp - movement.timestamp;
             if (age > HORIZON_MS) {
-                break; // Old
+                break; // Old points don't use
             }
 
             x[m] = movement.x;
@@ -323,18 +353,18 @@ function VelocityTracker() {
             var xdet = {confidence : 0};
             var ydet = {confidence : 0};
             var n = degree + 1;
-            if (solveLeastSquares(time, x, w, m, n, outEstimator.xCoeff, xdet)
-                && solveLeastSquares(time, y, w, m, n, outEstimator.yCoeff, ydet)) {
-                outEstimator.time = newestMovement.eventTime;
-                outEstimator.degree = degree;
-                outEstimator.confidence = xdet.confidence * ydet.confidence;
+            if (solveLeastSquares(time, x, w, m, n, estimator.xCoeff, xdet) &&
+                solveLeastSquares(time, y, w, m, n, estimator.yCoeff, ydet)) {
+                estimator.time = newestMovement.eventTime;
+                estimator.degree = degree;
+                estimator.confidence = xdet.confidence * ydet.confidence;
                 
                 if (DEBUG) {
                     console.log("Estimate: ",
-                                "degree", outEstimator.degree,
-                                "xCoeff", outEstimator.xCoeff,
-                                "yCoeff", outEstimator.yCoeff,
-                                "confidence", outEstimator.confidence);
+                                "degree", estimator.degree,
+                                "xCoeff", estimator.xCoeff,
+                                "yCoeff", estimator.yCoeff,
+                                "confidence", estimator.confidence);
                 }
                 return true;
             }
@@ -344,19 +374,18 @@ function VelocityTracker() {
         if (DEBUG) {
             console.log("velocity data available for this pointer, but we do have its current position.");
         }
-        outEstimator.xCoeff[0] = x[0];
-        outEstimator.yCoeff[0] = y[0];
-        outEstimator.time = newestMovement.eventTime;
-        outEstimator.degree = 0;
-        outEstimator.confidence = 1;
+        estimator.xCoeff[0] = x[0];
+        estimator.yCoeff[0] = y[0];
+        estimator.time = newestMovement.eventTime;
+        estimator.degree = 0;
+        estimator.confidence = 1;
         return true;
     }
 
     return {
         getVelocity : function getVelocity() {
-            var estimator = new Estimator();
-            // 2 polynomial estimatorn
-            if (getEstimator(estimator, 2) && estimator.degree >= 1) {
+            // 2 polynomial estimator
+            if (prepareEstimator(2) && estimator.degree >= 1) {
                 return {
                     unit : "px / ms",
                     vx : estimator.xCoeff[1],
@@ -367,11 +396,10 @@ function VelocityTracker() {
         },
         
         getPositions : function () {
-            return positions;
+            return positions.filter(function (x) { return x !== undefined; });
         },
 
         /**
-         Only add move movements
          * @param pos = {x, y, timestamp_ms}
          */
         addMovement : function addMovement(pos) {

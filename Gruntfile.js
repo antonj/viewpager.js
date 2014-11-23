@@ -28,10 +28,6 @@ module.exports = function (grunt) {
       }
     },
 
-    qunit: {
-      all: ['tests/**/*.html']
-    },
-
     watch: {
       js: {
         files: ['src/**/*.js'],

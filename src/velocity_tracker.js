@@ -383,6 +383,8 @@ function VelocityTracker() {
     }
 
     return {
+        clear : clear,
+      
         getVelocity : function getVelocity() {
             // 2 polynomial estimator
             if (prepareEstimator(2) && estimator.degree >= 1) {
@@ -392,7 +394,12 @@ function VelocityTracker() {
                     vy : estimator.yCoeff[1]
                 };
             }
-            return estimator;
+          return {
+            info : 'no velo',
+            unit : "px / ms",
+            vx : 0,
+            vy : 0
+          };
         },
         
       getPositions : function () {
@@ -421,9 +428,7 @@ function VelocityTracker() {
                 if (DEBUG) {
                     console.log('no movements assume stop');
                 }
-                // TODO strategy clear
-              clear();
-              console.log('cleared');
+                clear();
             }
             last_timestamp = pos.timestamp;
 

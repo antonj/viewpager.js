@@ -38,29 +38,31 @@ function GestureDetector(elem, options) {
       vtracker = new (require('./velocity_tracker'))(),
       container = window,
       self = this,
-      
-      m_down_x = 0,
-      m_down_y = 0,
-      m_dx = 0,
-      m_dy = 0,
-      m_down_timestamp = 0,
+
+      m_down_point,
+      m_prev_point,
       
       is_dragging = false,
+      is_first_drag = false,
       
       noop = function () {},
       onDown = options.onUp || noop,
       onUp = options.onUp || noop,
       onDrag = options.onDrag || noop,
+      onFirstDrag = options.onFirstDrag || noop,
       onFling = options.onFling || noop;
 
   function getPoint (e) {
-    return has_touch ?
-      {x : e.touches[0].pageX,
-       y : e.touches[0].pageY,
-       timestamp : e.timeStamp} :
-    {x : e.pageX,
-     y : e.pageY,
-     timestamp : e.timeStamp};
+    if (has_touch) {
+      var t = (e.touches.length) ? e.touches : e.changedTouches;
+      return {x : t[0].pageX,
+              y : t[0].pageY,
+              timestamp : e.timeStamp};
+      } else {
+        return {x : e.pageX,
+                y : e.pageY,
+                timestamp : e.timeStamp};
+      }
   }
 
   var eventHandler = {
@@ -83,14 +85,13 @@ function GestureDetector(elem, options) {
 
     onDown : function (e) {
       is_dragging = true;
-      console.log('mouse down');
+      is_first_drag = true;
       
       var p = getPoint(e);
-
-      m_down_x = p.x;
-      m_down_y = p.y;
-
-      m_down_timestamp = p.timestamp;
+      m_down_point = p;
+      m_prev_point = p;
+      vtracker.clear();
+      vtracker.addMovement(p);
       onDown(e);
     },
 
@@ -98,28 +99,35 @@ function GestureDetector(elem, options) {
       var p = getPoint(e);
 
       if (is_dragging) {
-        m_dx = p.x - m_down_x;
-        m_dy = p.y - m_down_y;
-        p.dx = m_dx;
-        p.dy = m_dy;
         vtracker.addMovement(p);
-        onDrag(p);
+
+        var dragData = {x: p.x,
+                        y: p.y,
+                        dx: p.x - m_prev_point.x,
+                        dy: p.y - m_prev_point.y,
+                        timestamp: p.timestamp,
+                        down_point: m_down_point,
+                        m_prev_point :  m_prev_point,
+                        event: e};
+
+        if (is_first_drag) {
+          onFirstDrag(dragData);
+          is_first_drag = false;
+        }
+        onDrag(dragData);
+        
+        m_prev_point = p;
       }
 
       return false;
     },
 
     onUp : function (e) {
-      is_dragging = false;
       var p = getPoint(e);
-      
-      var duration = Date.now() - m_down_timestamp;
-      m_dx = m_down_x - p.pageX;
-      m_dy = m_down_y - p.pageY;
+      is_dragging = false;
+      m_prev_point = undefined;
       var velo = vtracker.getVelocity();
-      console.log('velo', velo);
       onFling(p, velo);
-      
       onUp();
     }
   };
@@ -529,6 +537,8 @@ function VelocityTracker() {
     }
 
     return {
+        clear : clear,
+      
         getVelocity : function getVelocity() {
             // 2 polynomial estimator
             if (prepareEstimator(2) && estimator.degree >= 1) {
@@ -538,7 +548,12 @@ function VelocityTracker() {
                     vy : estimator.yCoeff[1]
                 };
             }
-            return estimator;
+          return {
+            info : 'no velo',
+            unit : "px / ms",
+            vx : 0,
+            vy : 0
+          };
         },
         
       getPositions : function () {
@@ -567,9 +582,7 @@ function VelocityTracker() {
                 if (DEBUG) {
                     console.log('no movements assume stop');
                 }
-                // TODO strategy clear
-              clear();
-              console.log('cleared');
+                clear();
             }
             last_timestamp = pos.timestamp;
 

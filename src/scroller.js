@@ -423,7 +423,8 @@ function Scroller(interpolator, flywheel) {
 
       var timePassed = currentAnimationTimeMillis() - mStartTime;
 
-      if (timePassed < mDuration) {
+      // NOTE never let time run out?
+      if (true || timePassed < mDuration) {
         switch (mMode) {
         case SCROLL_MODE:
           var x = timePassed * mDurationReciprocal;
@@ -436,6 +437,10 @@ function Scroller(interpolator, flywheel) {
 
           mCurrX = mStartX + Math.round(x * mDeltaX);
           mCurrY = mStartY + Math.round(x * mDeltaY);
+
+          if (mCurrX === mFinalX && mCurrY === mFinalY) {
+            mFinished = true;
+          }
           break;
         case FLING_MODE:
           // final float t = (float) timePassed / mDuration;
@@ -478,8 +483,8 @@ function Scroller(interpolator, flywheel) {
 
           break;
         }
-      }
-      else {
+      } else {
+        console.log('SCROLLER time ran out');
         mCurrX = mFinalX;
         mCurrY = mFinalY;
         mFinished = true;

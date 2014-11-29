@@ -76,6 +76,18 @@ module.exports = {
   mapClamp : function (value, istart, istop, ostart, ostop) {
     return this.clamp(this.map(value, istart, istop, ostart, ostop),
                       ostart < ostop ? ostart : ostop, ostart < ostop ? ostop : ostart);
+  },
+
+  roundTo : function (i, v) {
+    return Math.round(i / v) * v;
+  },
+
+  roundDownTo : function(i, v) {
+    return Math.floor(i / v) * v;
+  },
+
+  roundUpTo : function(i, v) {
+    return Math.ceil(i / v) * v;
   }
 };
 

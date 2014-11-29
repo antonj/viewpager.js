@@ -16,8 +16,6 @@ function ViewPager(elem, options) {
       elem_size = DIRECTION_HORIZONTAL ? elem.offsetWidth : elem.offsetHeight,
       m_down_x = 0,
       m_down_y = 0,
-      m_move_x = 0,
-      m_move_y = 0,
       m_down_timestamp = 0,
       is_animating = false,
       is_dragging = false,
@@ -85,9 +83,6 @@ function ViewPager(elem, options) {
 
       m_down_x = p.pageX;
       m_down_y = p.pageY;
-
-      m_move_x = p.pageX;
-      m_move_y = p.pageY;
 
       m_down_timestamp = Date.now();
 

@@ -1,14 +1,16 @@
 {
-  "name": "arbolagetoppet.nu",
+  "name": "viewpager.com",
   "version": "0.1.0",
+  "repository" : {
+      "type" : "git",
+      "url" : "http://github.com/antonj/viewpager.js.git"
+  },
   "devDependencies": {
-    "grunt":                    "*",
-    "grunt-notify":             "*",
-    "grunt-contrib-jshint":     "*",
-    "grunt-contrib-uglify":     "*",
-    "grunt-contrib-watch":      "*",
-    "grunt-browserify":         "*",
-    "grunt-contrib-qunit":      "*",
-    "matchdep":                 "*"
+    "grunt": "^0.4.5",
+    "grunt-browserify": "^3.2.1",
+    "grunt-contrib-jshint": "^0.10.0",
+    "grunt-contrib-uglify": "^0.6.0",
+    "grunt-contrib-watch": "^0.6.1",
+    "matchdep": "^0.3.0"
   }
 }

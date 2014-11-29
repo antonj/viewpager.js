@@ -1,4 +1,4 @@
-!function(e){"object"==typeof exports?module.exports=e():"function"==typeof define&&define.amd?define(e):"undefined"!=typeof window?window.ViewPager=e():"undefined"!=typeof global?global.ViewPager=e():"undefined"!=typeof self&&(self.ViewPager=e())}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+!function(e){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=e();else if("function"==typeof define&&define.amd)define([],e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.ViewPager=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 /*global module*/
 'use strict';
 
@@ -98,8 +98,6 @@ function ViewPager(elem, options) {
       elem_size = DIRECTION_HORIZONTAL ? elem.offsetWidth : elem.offsetHeight,
       m_down_x = 0,
       m_down_y = 0,
-      m_move_x = 0,
-      m_move_y = 0,
       m_down_timestamp = 0,
       is_animating = false,
       is_dragging = false,
@@ -167,9 +165,6 @@ function ViewPager(elem, options) {
 
       m_down_x = p.pageX;
       m_down_y = p.pageY;
-
-      m_move_x = p.pageX;
-      m_move_y = p.pageY;
 
       m_down_timestamp = Date.now();
 
@@ -318,7 +313,5 @@ function ViewPager(elem, options) {
 
 module.exports = ViewPager;
 
-},{"./events":1,"./raf":2,"./utils":3}]},{},[4])
-(4)
+},{"./events":1,"./raf":2,"./utils":3}]},{},[4])(4)
 });
-;

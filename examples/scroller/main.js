@@ -1,4 +1,4 @@
-/*global Scroller, VelocityTracker, setTimeout, requestAnimationFrame*/
+/*global Scroller, GestureDetector, VelocityTracker, setTimeout, requestAnimationFrame*/
 
 var MINIMUM_FLING_VELOCITY = 50;
 
@@ -17,8 +17,28 @@ canvas.height = h;
 console.log(w, h);
 
 var scroller = new Scroller();
-var vtracker = new VelocityTracker();
 var position = {x: 0, y: 0};
+
+var gd = new GestureDetector(area, {
+  onDrag : function (p) {
+    scroller.forceFinished(true);
+
+    window.antonj = this;
+    position.x = p.x;
+    position.y = p.y;
+  },
+
+  onFling : function (p, v) {
+    console.log('fling', p, v);
+    scroller.fling(p.x, p.y, // startx, starty
+                   // vx, vy, //velocityX, velocityY,
+                   v.vx * 1000, //velocityX
+                   v.vy * 1000); //velocityY
+  }
+});
+
+var vtracker = gd.getVelocityTracker();
+
 scroller.startScroll(0, 0, w, h, 6000);
 
 setTimeout(function () {
@@ -75,76 +95,76 @@ function update() {
 
 requestAnimationFrame(update);
 
-function mouseListener() {
-  var m_down = false;
-  var m_prev_point = {x: 0, y: 0, timestamp: 0};
-  var m_dx = 0;
-  var m_dy = 0;
-  var m_dt = 0;
+// function mouseListener() {
+//   var m_down = false;
+//   var m_prev_point = {x: 0, y: 0, timestamp: 0};
+//   var m_dx = 0;
+//   var m_dy = 0;
+//   var m_dt = 0;
   
-  var events = {
-    handleEvent : function (event) {
-      switch (event.type) {
-      case 'mousedown':
-      case 'touchstart':
-        this.onDown(event);
-        break;
-      case 'mousemove':
-      case 'touchmove':
-        this.onMove(event);
-        break;
-      case 'mouseup':
-      case 'touchend':
-        this.onUp(event);
-        break;
-      }
-    },
+//   var events = {
+//     handleEvent : function (event) {
+//       switch (event.type) {
+//       case 'mousedown':
+//       case 'touchstart':
+//         this.onDown(event);
+//         break;
+//       case 'mousemove':
+//       case 'touchmove':
+//         this.onMove(event);
+//         break;
+//       case 'mouseup':
+//       case 'touchend':
+//         this.onUp(event);
+//         break;
+//       }
+//     },
 
-    onDown : function (e) {
-      m_down = true;
-      scroller.forceFinished(true);
-    },
-    onMove : function (e) {
-      e.preventDefault();
-      if (m_down) {
-        var p = ('ontouchstart' in window)
-              ? {x : e.touches[0].pageX, y : e.touches[0].pageY, timestamp : e.timeStamp}
-            : {x : e.pageX, y : e.pageY, timestamp : e.timeStamp};
-        vtracker.addMovement(p);
-        position.x = p.x;
-        position.y = p.y;
-        m_dx = p.x - m_prev_point.x;
-        m_dy = p.y - m_prev_point.y;
-        m_dt = (p.timestamp - m_prev_point.timestamp) / 1000;
-        m_prev_point = p;
-      }
-    },
-    onUp : function (e) {
-      m_down = false;
+//     onDown : function (e) {
+//       m_down = true;
+//       scroller.forceFinished(true);
+//     },
+//     onMove : function (e) {
+//       e.preventDefault();
+//       if (m_down) {
+//         var p = ('ontouchstart' in window)
+//               ? {x : e.touches[0].pageX, y : e.touches[0].pageY, timestamp : e.timeStamp}
+//             : {x : e.pageX, y : e.pageY, timestamp : e.timeStamp};
+//         vtracker.addMovement(p);
+//         position.x = p.x;
+//         position.y = p.y;
+//         m_dx = p.x - m_prev_point.x;
+//         m_dy = p.y - m_prev_point.y;
+//         m_dt = (p.timestamp - m_prev_point.timestamp) / 1000;
+//         m_prev_point = p;
+//       }
+//     },
+//     onUp : function (e) {
+//       m_down = false;
 
-      console.log(m_dt, m_dx, m_dy, e);
-      fling(m_dx / m_dt, m_dy / m_dt); // pixels / second
-    }
-  };
+//       console.log(m_dt, m_dx, m_dy, e);
+//       fling(m_dx / m_dt, m_dy / m_dt); // pixels / second
+//     }
+//   };
 
-  function fling(vx, vy) {
-    if (Math.abs(vy) > MINIMUM_FLING_VELOCITY || Math.abs(vx) > MINIMUM_FLING_VELOCITY) {
-      var v = vtracker.getVelocity();
-      console.log("velo" , vtracker.getVelocity());
-      console.log("vx, vy" , vx, vy);
-      scroller.fling(position.x, position.y, // startx, starty
-                     // vx, vy, //velocityX, velocityY,
-                     v.vx * 1000, //velocityX
-                     v.vy * 1000); //velocityY
-    }
-  }
+//   function fling(vx, vy) {
+//     if (Math.abs(vy) > MINIMUM_FLING_VELOCITY || Math.abs(vx) > MINIMUM_FLING_VELOCITY) {
+//       var v = vtracker.getVelocity();
+//       console.log("velo" , vtracker.getVelocity());
+//       console.log("vx, vy" , vx, vy);
+//       scroller.fling(position.x, position.y, // startx, starty
+//                      // vx, vy, //velocityX, velocityY,
+//                      v.vx * 1000, //velocityX
+//                      v.vy * 1000); //velocityY
+//     }
+//   }
   
-  area.addEventListener('mousedown', events);
-  area.addEventListener('mousemove', events);
-  area.addEventListener('mouseup', events);
-  area.addEventListener('touchstart', events);
-  area.addEventListener('touchmove', events);
-  area.addEventListener('touchend', events);
-}
+//   area.addEventListener('mousedown', events);
+//   area.addEventListener('mousemove', events);
+//   area.addEventListener('mouseup', events);
+//   area.addEventListener('touchstart', events);
+//   area.addEventListener('touchmove', events);
+//   area.addEventListener('touchend', events);
+// }
 
-mouseListener();
+// mouseListener();

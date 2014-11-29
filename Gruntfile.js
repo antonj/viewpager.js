@@ -22,7 +22,7 @@ module.exports = function (grunt) {
     },
 
     browserify: {
-      js: {
+      viewpager: {
         options: {
           browserifyOptions : {
             standalone: 'ViewPager'
@@ -30,8 +30,27 @@ module.exports = function (grunt) {
         },
         src: 'src/viewpager.js',
         dest: 'dist/viewpager.js'
-      }
+      },
 
+      gesturedetector: {
+        options: {
+          browserifyOptions : {
+            standalone: 'GestureDetector'
+          }
+        },
+        src: 'src/gesture_detector.js',
+        dest: 'dist/gesture_detector.js'
+      },
+
+      velocitytracker: {
+        options: {
+          browserifyOptions : {
+            standalone: 'VelocityTracker'
+          }
+        },
+        src: 'src/velocity_tracker.js',
+        dest: 'dist/velocity_tracker.js'
+      }
     },
 
     watch: {

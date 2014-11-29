@@ -223,15 +223,28 @@ function ViewPager(elem, options) {
   }
 
   Events.add(elem, ev_start_name, events);
+  
   Events.add(window, 'resize', debounce(function () {
     elem_size = elem.offsetWidth;
     console.log('resize');
     onSizeChanged(elem.offsetWidth, elem.offsetHeight);
   }, 100));
+  
   Events.add(window, 'mousewheel', debounce(function (e) {
+
     // events
-    console.log('scroll ', e.wheelDelta < 0 ? 'up' : 'down');
-  }, 50));
+    if (e.wheelDeltaY !== 0 && !DIRECTION_HORIZONTAL) {
+      console.log('scroll ', e.wheelDeltaY < 0 ? 'up' : 'down');
+      if (e.wheelDeltaY < 0) { // up
+        animate(true, 100, true);
+      } else { // down
+        animate(true, 100);
+      }
+    } else if (e.wheelDeltaX !== 0 && DIRECTION_HORIZONTAL) {
+      console.log('scroll ', e.wheelDeltaX < 0 ? 'left' : 'right');
+    }
+    
+  }, 150, true));
 
   /** move_diff_pxe API */
   return {

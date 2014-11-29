@@ -1,0 +1,26 @@
+html, body {
+   margin: 0;
+   padding: 0;
+}
+
+.pager {
+   position: absolute;
+   width: 100%;
+   height: 100%;
+   overflow: hidden;
+}
+
+.pager_items {
+   width: 100%;
+   height: 300%;
+   overflow: hidden;
+   outline: 1px solid blue;
+}
+
+img {
+   position: relative;
+   display: block;
+   width: 100%;
+   height: 33.3333333333%;
+   outline: 1px solid red;
+}

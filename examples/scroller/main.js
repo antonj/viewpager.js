@@ -134,9 +134,8 @@ function mouseListener() {
       console.log("vx, vy" , vx, vy);
       scroller.fling(position.x, position.y, // startx, starty
                      // vx, vy, //velocityX, velocityY,
-                     v.vx * 1000, v.vy * 1000, //velocityX, velocityY,
-                     -Number.MAX_VALUE, Number.MAX_VALUE, //minX, maxX,
-                     -Number.MAX_VALUE, Number.MAX_VALUE); //minY, maxY);
+                     v.vx * 1000, //velocityX
+                     v.vy * 1000); //velocityY
     }
   }
   

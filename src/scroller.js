@@ -537,7 +537,13 @@ function Scroller(interpolator, flywheel) {
      */
     // public void fling(int startX, int startY, int velocityX, int velocityY,
     //                   int minX, int maxX, int minY, int maxY) {
-    fling : function fling(startX, startY, velocityX, velocityY, minX, maxX, minY, maxY) {
+    fling : function fling(startX, startY, velocityX, velocityY,
+                           minX, maxX, minY, maxY) {
+      minX = (minX === undefined) ? -Number.MAX_VALUE : minX;
+      minY = (minY === undefined) ? -Number.MAX_VALUE : minY;
+      maxX = (maxX === undefined) ? Number.MAX_VALUE : maxX;
+      maxY = (maxY === undefined) ? Number.MAX_VALUE : maxY;
+
       // Continue a scroll or fling in progress
       if (mFlywheel && !mFinished) {
         var oldVel = getCurrVelocity();

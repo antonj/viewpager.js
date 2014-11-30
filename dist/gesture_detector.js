@@ -124,10 +124,12 @@ function GestureDetector(elem, options) {
 
     onUp : function (e) {
       var p = getPoint(e);
-      is_dragging = false;
-      m_prev_point = undefined;
-      var velo = vtracker.getVelocity();
-      onFling(p, velo);
+      if (is_dragging) {
+        is_dragging = false;
+        m_prev_point = undefined;
+        var velo = vtracker.getVelocity();
+        onFling(p, velo);
+      }
       onUp();
     }
   };

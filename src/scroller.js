@@ -438,7 +438,8 @@ function Scroller(interpolator, flywheel) {
           mCurrX = mStartX + Math.round(x * mDeltaX);
           mCurrY = mStartY + Math.round(x * mDeltaY);
 
-          if (mCurrX === mFinalX && mCurrY === mFinalY) {
+          // TODO fix decimal done checks, remove round
+          if (Math.round(mCurrX) === Math.round(mFinalX) && Math.round(mCurrY) === Math.round(mFinalY)) {
             mFinished = true;
           }
           break;
@@ -477,7 +478,8 @@ function Scroller(interpolator, flywheel) {
           mCurrY = Math.min(mCurrY, mMaxY);
           mCurrY = Math.max(mCurrY, mMinY);
 
-          if (mCurrX === mFinalX && mCurrY === mFinalY) {
+          // TODO fix decimal done checks, remove round
+          if (Math.round(mCurrX) === Math.round(mFinalX) && Math.round(mCurrY) === Math.round(mFinalY)) {
             mFinished = true;
           }
 

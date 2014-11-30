@@ -108,8 +108,8 @@ function update() {
   context.strokeStyle = 'grey';
   while (px <= w) {
     context.beginPath();
-    context.moveTo(px, cy - (big ? 20 : 10) * pixelRatio);
-    context.lineTo(px, cy + (big ? 20 : 10) * pixelRatio);
+    context.moveTo(px, cy - (big ? 20 : 5) * pixelRatio);
+    context.lineTo(px, cy + (big ? 20 : 5) * pixelRatio);
     context.stroke();
     context.closePath();
     px += STEPS;

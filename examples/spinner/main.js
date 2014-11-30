@@ -9,8 +9,13 @@ var context = canvas.getContext('2d');
 
 var w = area.offsetWidth;
 var h = area.offsetHeight;
+var pixelRatio = ('devicePixelRatio' in window) && (window.devicePixelRatio > 1) ? window.devicePixelRatio : 1;
+
+w *= pixelRatio;
+h *= pixelRatio;
 var cx = w / 2;
 var cy = h / 2;
+
 canvas.width = w;
 canvas.height = h;
 context.font = "44px Helvetica";
@@ -44,7 +49,7 @@ var gd = new GestureDetector(area, {
     if (!active) return;
     scroller.forceFinished(true);
     console.log('dx', p.dx);
-    position.x += p.dx;
+    position.x += (p.dx * pixelRatio);
   },
 
   onFling : function (p, v) {
@@ -57,9 +62,9 @@ var gd = new GestureDetector(area, {
                            200);
       console.log('SCROLL', position.x, pos);
     } else {
-      scroller.fling(position.x, position.y, // startx, starty
+      scroller.fling(position.x, 0, // startx, starty
                      // vx, vy, //velocityX, velocityY,
-                     v.vx * 1000, //velocityX
+                     v.vx * 1000 * pixelRatio, //velocityX
                      0); //velocityY
       var finalX = scroller.getFinalX();
       var roundedX = roundTo(finalX, STEPS);
@@ -86,7 +91,7 @@ function update() {
   }
 
   box.style['-webkit-transform'] = 'translate3d('
-    + position.x + 'px, '
+    + (position.x / pixelRatio) + 'px, '
     + 0 + 'px, '
     + ' 0px)';
 
@@ -103,8 +108,8 @@ function update() {
   context.strokeStyle = 'grey';
   while (px <= w) {
     context.beginPath();
-    context.moveTo(px, cy - (big ? 20 : 10));
-    context.lineTo(px, cy + (big ? 20 : 10));
+    context.moveTo(px, cy - (big ? 20 : 10) * pixelRatio);
+    context.lineTo(px, cy + (big ? 20 : 10) * pixelRatio);
     context.stroke();
     context.closePath();
     px += STEPS;

@@ -135,13 +135,13 @@ function GestureDetector(elem, options) {
   };
 
   Events.add(elem, ev_start_name, eventHandler);
-  Events.add(container, ev_move_name, eventHandler);  
+  Events.add(container, ev_move_name, eventHandler);
   Events.add(container, ev_end_name, eventHandler);
 
   return {
     stop : function () {
       Events.remove(elem, ev_start_name, eventHandler);
-      Events.remove(container, ev_move_name, eventHandler);  
+      Events.remove(container, ev_move_name, eventHandler);
       Events.remove(container, ev_end_name, eventHandler);
     },
 

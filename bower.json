@@ -13,7 +13,7 @@
     "slideshow"
   ],
   "license": "MIT",
-  "homepage": "viewpager.com",
+  "homepage": "http://github.com/antonj/viewpager.js",
   "private": true,
   "ignore": [
     "**/.*",

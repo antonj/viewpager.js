@@ -44,7 +44,7 @@ var gd = new GestureDetector(area, {
       p.event.preventDefault();
     }
   },
-  
+
   onDrag : function (p) {
     if (!active) return;
     scroller.forceFinished(true);
@@ -85,7 +85,7 @@ function update() {
     if (scrollX === 0 || scrollX === w) {
       scroller.forceFinished(true);
     }
-  
+
     position.x = scrollX;
     console.log(position.x);
   }
@@ -98,7 +98,7 @@ function update() {
   var val = clamp(roundTo(position.x, STEPS) / (STEPS * 2), 0, 8);
 
   context.clearRect ( 0 , 0 , canvas.width, canvas.height );
-  
+
   context.fillStyle = 'black';
   context.fillText("" + val.toFixed(1), cx, cy + 10);
 
@@ -115,7 +115,7 @@ function update() {
     px += STEPS;
     big = !big;
   }
-  
+
 
   // Velo
   var v = vtracker.getVelocity();
@@ -206,3 +206,21 @@ requestAnimationFrame(update);
 // }
 
 // mouseListener();
+
+// To enable touch events on desktop.
+// Note: Remove this when building Cordova/PhoneGap apps!
+var isMobileUA = function () {
+    return navigator.userAgent.match(/Android/i)
+      || navigator.userAgent.match(/webOS/i)
+      || navigator.userAgent.match(/iPhone/i)
+      || navigator.userAgent.match(/iPad/i)
+      || navigator.userAgent.match(/iPod/i)
+      || navigator.userAgent.match(/BlackBerry/i)
+      || navigator.userAgent.match(/Windows Phone/i)
+    ? true
+    : false;
+};
+if (!isMobileUA()) {
+    console.log('No mobile user agent detected; initiating Fingerblast.js.')
+    window.onload = new FingerBlast('body');
+}

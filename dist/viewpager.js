@@ -1,4 +1,4 @@
-!function(e){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=e();else if("function"==typeof define&&define.amd)define([],e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.ViewPager=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+!function(e){if("object"==typeof exports)module.exports=e();else if("function"==typeof define&&define.amd)define(e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.ViewPager=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
 /*global module*/
 'use strict';
 
@@ -24,80 +24,13 @@ module.exports = {
   }
 };
 
-},{}],2:[function(require,module,exports){
-/*global module, clearTimeout, window*/
-'use strict';
-
-/** http://www.paulirish.com/2011/requestanimationframe-for-smart-animating/ */
-var lastTime = 0;
-var vendors = ['webkit', 'moz'];
-var x;
-
-for (x = 0; x < vendors.length && !window.requestAnimationFrame; ++x) {
-  window.requestAnimationFrame = window[vendors[x] + 'RequestAnimationFrame'];
-  window.cancelAnimationFrame =
-    window[vendors[x] + 'CancelAnimationFrame'] || window[vendors[x] + 'CancelRequestAnimationFrame'];
-}
-
-if (!window.requestAnimationFrame) {
-  window.requestAnimationFrame = function (callback) {
-    var currTime = new Date().getTime(),
-        timeToCall = Math.max(0, 16 - (currTime - lastTime)),
-        id = window.setTimeout(function () {
-          callback(currTime + timeToCall);
-        }, timeToCall);
-    lastTime = currTime + timeToCall;
-    return id;
-  };
-}
-
-if (!window.cancelAnimationFrame) {
-  window.cancelAnimationFrame = function (id) {
-    clearTimeout(id);
-  };
-}
-
-module.exports.requestAnimationFrame = window.requestAnimationFrame;
-module.exports.cancelAnimationFrame = window.cancelAnimationFrame;
-
-},{}],3:[function(require,module,exports){
-/*global module*/
-'use strict';
-
-module.exports = {
-  clamp : function (val, min, max) {
-    return Math.min(Math.max(val, min), max);
-  },
-
-  map : function (value, istart, istop, ostart, ostop) {
-    return ostart + (ostop - ostart) * ((value - istart) / (istop - istart));
-  },
-
-  mapClamp : function (value, istart, istop, ostart, ostop) {
-    return this.clamp(this.map(value, istart, istop, ostart, ostop),
-                      ostart < ostop ? ostart : ostop, ostart < ostop ? ostop : ostart);
-  },
-
-  roundTo : function (i, v) {
-    return Math.round(i / v) * v;
-  },
-
-  roundDownTo : function(i, v) {
-    return Math.floor(i / v) * v;
-  },
-
-  roundUpTo : function(i, v) {
-    return Math.ceil(i / v) * v;
-  }
-};
-
-},{}],4:[function(require,module,exports){
+},{}],2:[function(_dereq_,module,exports){
 /*global window, require, module */
 'use strict';
 
-var utils = require('./utils');
-var raf = require('./raf').requestAnimationFrame;
-var Events = require('./events');
+var utils = _dereq_('./utils');
+var raf = _dereq_('./raf').requestAnimationFrame;
+var Events = _dereq_('./events');
 
 function ViewPager(elem, options) {
   options = options || {};
@@ -325,5 +258,73 @@ function ViewPager(elem, options) {
 
 module.exports = ViewPager;
 
-},{"./events":1,"./raf":2,"./utils":3}]},{},[4])(4)
+},{"./events":1,"./raf":3,"./utils":4}],3:[function(_dereq_,module,exports){
+/*global module, clearTimeout, window*/
+'use strict';
+
+/** http://www.paulirish.com/2011/requestanimationframe-for-smart-animating/ */
+var lastTime = 0;
+var vendors = ['webkit', 'moz'];
+var x;
+
+for (x = 0; x < vendors.length && !window.requestAnimationFrame; ++x) {
+  window.requestAnimationFrame = window[vendors[x] + 'RequestAnimationFrame'];
+  window.cancelAnimationFrame =
+    window[vendors[x] + 'CancelAnimationFrame'] || window[vendors[x] + 'CancelRequestAnimationFrame'];
+}
+
+if (!window.requestAnimationFrame) {
+  window.requestAnimationFrame = function (callback) {
+    var currTime = new Date().getTime(),
+        timeToCall = Math.max(0, 16 - (currTime - lastTime)),
+        id = window.setTimeout(function () {
+          callback(currTime + timeToCall);
+        }, timeToCall);
+    lastTime = currTime + timeToCall;
+    return id;
+  };
+}
+
+if (!window.cancelAnimationFrame) {
+  window.cancelAnimationFrame = function (id) {
+    clearTimeout(id);
+  };
+}
+
+module.exports.requestAnimationFrame = window.requestAnimationFrame;
+module.exports.cancelAnimationFrame = window.cancelAnimationFrame;
+
+},{}],4:[function(_dereq_,module,exports){
+/*global module*/
+'use strict';
+
+module.exports = {
+  clamp : function (val, min, max) {
+    return Math.min(Math.max(val, min), max);
+  },
+
+  map : function (value, istart, istop, ostart, ostop) {
+    return ostart + (ostop - ostart) * ((value - istart) / (istop - istart));
+  },
+
+  mapClamp : function (value, istart, istop, ostart, ostop) {
+    return this.clamp(this.map(value, istart, istop, ostart, ostop),
+                      ostart < ostop ? ostart : ostop, ostart < ostop ? ostop : ostart);
+  },
+
+  roundTo : function (i, v) {
+    return Math.round(i / v) * v;
+  },
+
+  roundDownTo : function(i, v) {
+    return Math.floor(i / v) * v;
+  },
+
+  roundUpTo : function(i, v) {
+    return Math.ceil(i / v) * v;
+  }
+};
+
+},{}]},{},[2])
+(2)
 });

@@ -6,7 +6,9 @@ var gulp = require('gulp'),
     grename = require('gulp-rename'),
     merge = require('merge-stream'),
     browserify = require('gulp-browserify'),
-    jshint = require('gulp-jshint');
+    jshint = require('gulp-jshint'),
+    browserSync = require('browser-sync');
+
 
 function out(src, standAloneName) {
   return gulp.src(src)
@@ -35,10 +37,19 @@ gulp.task('lint', function() {
     .pipe(jshint.reporter('default'));
 });
 
+gulp.task('browser-sync', function() {
+  browserSync({ server: { baseDir: './' ,  directory: true } });
+});
+
 gulp.task('watch', function() {
   gulp.watch(['src/**/*.js'], ['js']);
-  gulp.watch(['./dist/*.js', '!./dist/*.min.js'], ['minjs']);
+  gulp.watch(['./dist/*.js', '!./dist/*.min.js'],
+             ['minjs', browserSync.reload]);
+  gulp.watch(['./examples/**/*.js',
+              './examples/**/*.html',
+              './examples/**/*.css'],
+             ['minjs', browserSync.reload]);
 });
 
 
-gulp.task('default', ['lint', 'js', 'minjs', 'watch']);
+gulp.task('default', ['lint', 'js', 'minjs', 'watch', 'browser-sync']);

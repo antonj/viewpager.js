@@ -8,9 +8,10 @@ var h = view_pager_elem.offsetHeight;
 var vp = new ViewPager(view_pager_elem, {
   pages: item_container.children.length,
   vertical: false,
-  onPageScroll : function (offset, page) {
-    console.log(offset, page);
-    item_container.style['-webkit-transform'] = 'translate3d(' + ((-offset * w) - (page * w)) + 'px, 0px, 0px)';
+  onPageScroll : function (totalOffset, page, pageOffset) {
+    // console.log('scroll', totalOffset, page, pageOffset.toFixed(2));
+    // console.log('translate', (totalOffset * w));
+    item_container.style['-webkit-transform'] = 'translate3d(' + (totalOffset * w) + 'px, 0px, 0px)';
 
   },
 

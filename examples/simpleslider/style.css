@@ -5,7 +5,8 @@ html, body {
 
 .pager {
    position: absolute;
-   width: 50%;
+   left: 10%;
+   width: 80%;
    height: 100%;
    /* left: 25%; */
    overflow: hidden;
@@ -13,7 +14,7 @@ html, body {
 
 .pager_items {
    width: 300%;
-   height: 50%;
+   height: 90%;
    overflow: hidden;
    outline: 1px solid blue;
 }

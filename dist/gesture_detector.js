@@ -1,4 +1,4 @@
-!function(e){if("object"==typeof exports)module.exports=e();else if("function"==typeof define&&define.amd)define(e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.GestureDetector=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
+!function(e){if("object"==typeof exports)module.exports=e();else if("function"==typeof define&&define.amd)define(e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.GestureDetector=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 /*global module*/
 'use strict';
 
@@ -24,18 +24,36 @@ module.exports = {
   }
 };
 
-},{}],2:[function(_dereq_,module,exports){
+},{}],2:[function(require,module,exports){
 /*global console, window, require, module */
 'use strict';
 
+/**
+ * onFling function
+ * @name GestureDetector~onFling
+ * @function
+ * @param {String} p - Information about the error.
+ * @param {Number} velocity - An integer of joy.
+ * @return undefined
+ */
+
+/**
+ * @param options Options to use.
+ * @param options.onFling Fling callback.
+ * @param options.onDrag Drag callback.
+ * @param options.onUp Mouse/Touch up callback.
+ * @param options.onDown Mouse/Touch down callback.
+ * @param options.onFirstDrag First drag event callback. Useful for
+ *                            canceling default browser behaviour.
+ */
 function GestureDetector(elem, options) {
   var has_touch = 'ontouchstart' in window,
       ev_start_name = has_touch ? 'touchstart' : 'mousedown',
       ev_move_name = has_touch ? 'touchmove' : 'mousemove',
       ev_end_name = has_touch ? ['touchend', 'touchcancel'] : ['mouseup', 'mousecancel'],
       
-      Events = _dereq_('./events'),
-      vtracker = new (_dereq_('./velocity_tracker'))(),
+      Events = require('./events'),
+      vtracker = new (require('./velocity_tracker'))(),
       container = window,
       self = this,
 
@@ -55,14 +73,30 @@ function GestureDetector(elem, options) {
   function getPoint (e) {
     if (has_touch) {
       var t = (e.touches.length) ? e.touches : e.changedTouches;
-      return {x : t[0].pageX,
-              y : t[0].pageY,
-              timestamp : e.timeStamp};
-      } else {
-        return {x : e.pageX,
-                y : e.pageY,
-                timestamp : e.timeStamp};
-      }
+      return { x : t[0].pageX,
+               y : t[0].pageY,
+               timestamp : e.timeStamp,
+               e: e};
+    } else {
+      return { x : e.pageX,
+               y : e.pageY,
+               timestamp : e.timeStamp,
+               e: e};
+    }
+  }
+  
+  function getDragData (point, previousPoint) {
+    return { x: point.x,
+             y: point.y,
+             dx: point.x - m_prev_point.x,
+             dy: point.y - m_prev_point.y,
+             totaldx: point.x - m_down_point.x,
+             totaldy: point.y - m_down_point.y,
+             timestamp: point.timestamp,
+             down_point: m_down_point,
+             m_prev_point :  m_prev_point,
+             event: point.e 
+           };
   }
 
   var eventHandler = {
@@ -100,15 +134,7 @@ function GestureDetector(elem, options) {
 
       if (is_dragging) {
         vtracker.addMovement(p);
-
-        var dragData = {x: p.x,
-                        y: p.y,
-                        dx: p.x - m_prev_point.x,
-                        dy: p.y - m_prev_point.y,
-                        timestamp: p.timestamp,
-                        down_point: m_down_point,
-                        m_prev_point :  m_prev_point,
-                        event: e};
+        var dragData = getDragData(p);
 
         if (is_first_drag) {
           onFirstDrag(dragData);
@@ -124,11 +150,12 @@ function GestureDetector(elem, options) {
 
     onUp : function (e) {
       var p = getPoint(e);
+      var dragData = getDragData(p);
       if (is_dragging) {
         is_dragging = false;
         m_prev_point = undefined;
         var velo = vtracker.getVelocity();
-        onFling(p, velo);
+        onFling(dragData, velo);
       }
       onUp();
     }
@@ -145,6 +172,10 @@ function GestureDetector(elem, options) {
       Events.remove(container, ev_end_name, eventHandler);
     },
 
+    isDragging : function isDragging() {
+      return is_dragging;
+    },
+
     getVelocityTracker : function () {
       return vtracker;
     }
@@ -153,7 +184,7 @@ function GestureDetector(elem, options) {
 
 module.exports = GestureDetector;
 
-},{"./events":1,"./velocity_tracker":3}],3:[function(_dereq_,module,exports){
+},{"./events":1,"./velocity_tracker":3}],3:[function(require,module,exports){
 /*global require, module, console */
 'use strict';
 

@@ -1,6 +1,24 @@
 /*global console, window, require, module */
 'use strict';
 
+/**
+ * onFling function
+ * @name GestureDetector~onFling
+ * @function
+ * @param {String} p - Information about the error.
+ * @param {Number} velocity - An integer of joy.
+ * @return undefined
+ */
+
+/**
+ * @param options Options to use.
+ * @param options.onFling Fling callback.
+ * @param options.onDrag Drag callback.
+ * @param options.onUp Mouse/Touch up callback.
+ * @param options.onDown Mouse/Touch down callback.
+ * @param options.onFirstDrag First drag event callback. Useful for
+ *                            canceling default browser behaviour.
+ */
 function GestureDetector(elem, options) {
   var has_touch = 'ontouchstart' in window,
       ev_start_name = has_touch ? 'touchstart' : 'mousedown',
@@ -28,14 +46,30 @@ function GestureDetector(elem, options) {
   function getPoint (e) {
     if (has_touch) {
       var t = (e.touches.length) ? e.touches : e.changedTouches;
-      return {x : t[0].pageX,
-              y : t[0].pageY,
-              timestamp : e.timeStamp};
-      } else {
-        return {x : e.pageX,
-                y : e.pageY,
-                timestamp : e.timeStamp};
-      }
+      return { x : t[0].pageX,
+               y : t[0].pageY,
+               timestamp : e.timeStamp,
+               e: e};
+    } else {
+      return { x : e.pageX,
+               y : e.pageY,
+               timestamp : e.timeStamp,
+               e: e};
+    }
+  }
+  
+  function getDragData (point, previousPoint) {
+    return { x: point.x,
+             y: point.y,
+             dx: point.x - m_prev_point.x,
+             dy: point.y - m_prev_point.y,
+             totaldx: point.x - m_down_point.x,
+             totaldy: point.y - m_down_point.y,
+             timestamp: point.timestamp,
+             down_point: m_down_point,
+             m_prev_point :  m_prev_point,
+             event: point.e 
+           };
   }
 
   var eventHandler = {
@@ -73,15 +107,7 @@ function GestureDetector(elem, options) {
 
       if (is_dragging) {
         vtracker.addMovement(p);
-
-        var dragData = {x: p.x,
-                        y: p.y,
-                        dx: p.x - m_prev_point.x,
-                        dy: p.y - m_prev_point.y,
-                        timestamp: p.timestamp,
-                        down_point: m_down_point,
-                        m_prev_point :  m_prev_point,
-                        event: e};
+        var dragData = getDragData(p);
 
         if (is_first_drag) {
           onFirstDrag(dragData);
@@ -97,11 +123,12 @@ function GestureDetector(elem, options) {
 
     onUp : function (e) {
       var p = getPoint(e);
+      var dragData = getDragData(p);
       if (is_dragging) {
         is_dragging = false;
         m_prev_point = undefined;
         var velo = vtracker.getVelocity();
-        onFling(p, velo);
+        onFling(dragData, velo);
       }
       onUp();
     }
@@ -116,6 +143,10 @@ function GestureDetector(elem, options) {
       Events.remove(elem, ev_start_name, eventHandler);
       Events.remove(container, ev_move_name, eventHandler);
       Events.remove(container, ev_end_name, eventHandler);
+    },
+
+    isDragging : function isDragging() {
+      return is_dragging;
     },
 
     getVelocityTracker : function () {

@@ -25,5 +25,9 @@ module.exports = {
 
   roundUpTo : function(i, v) {
     return Math.ceil(i / v) * v;
+  },
+
+  sign : function (num) {
+    return num ? (num < 0) ? -1 : 1 : 0;
   }
 };

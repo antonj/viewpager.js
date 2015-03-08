@@ -542,8 +542,6 @@ function Scroller(interpolator, flywheel) {
      * @param maxY Maximum Y value. The scroller will not scroll past this
      *        point.
      */
-    // public void fling(int startX, int startY, int velocityX, int velocityY,
-    //                   int minX, int maxX, int minY, int maxY) {
     fling : function fling(startX, startY, velocityX, velocityY,
                            minX, maxX, minY, maxY) {
       minX = (minX === undefined) ? -Number.MAX_VALUE : minX;
@@ -681,3 +679,5 @@ function Scroller(interpolator, flywheel) {
     }
   };
 }
+
+module.exports = Scroller;

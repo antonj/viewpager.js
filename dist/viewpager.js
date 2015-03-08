@@ -1,4 +1,4 @@
-!function(e){if("object"==typeof exports)module.exports=e();else if("function"==typeof define&&define.amd)define(e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.ViewPager=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+!function(e){if("object"==typeof exports)module.exports=e();else if("function"==typeof define&&define.amd)define(e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.ViewPager=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
 /*global module*/
 'use strict';
 
@@ -24,15 +24,15 @@ module.exports = {
   }
 };
 
-},{}],2:[function(require,module,exports){
+},{}],2:[function(_dereq_,module,exports){
 /*global window, require, console, module */
 'use strict';
 
-var Utils = require('./utils');
-var raf = require('./raf').requestAnimationFrame;
-var Events = require('./events');
-var Scroller = require('./scroller');
-var GestureDetector = require('./gesture_detector');
+var Utils = _dereq_('./utils');
+var raf = _dereq_('./raf').requestAnimationFrame;
+var Events = _dereq_('./events');
+var Scroller = _dereq_('./scroller');
+var GestureDetector = _dereq_('./gesture_detector');
 
 function ViewPager(elem, options) {
   options = options || {};
@@ -44,7 +44,7 @@ function ViewPager(elem, options) {
 
       MIN_DISTANCE_FOR_FLING = 25, // px
       MAX_SETTLE_DURATION = 600, // ms
-      MIN_FLING_VELOCITY = 400, // TODO unit
+      MIN_FLING_VELOCITY = 0.4, // px / ms
 
       elem_size = DIRECTION_HORIZONTAL ? elem.offsetWidth : elem.offsetHeight,
       noop = function () {},
@@ -67,20 +67,24 @@ function ViewPager(elem, options) {
     };
   }
 
+  /**
+   * @return targetPage {Number} Page to scroll to
+   */
   function determineTargetPage(position, deltaX, velocity) {
+    console.log('determineTargetPage', position, deltaX, velocity);
     var pi = positionInfo(position);
-
     var targetPage;
+    console.log('detltaX', deltaX, 'velocity', velocity);
     if (Math.abs(deltaX) > MIN_DISTANCE_FOR_FLING && 
         Math.abs(velocity) > MIN_FLING_VELOCITY) {
       targetPage = velocity > 0 ? pi.activePage : pi.activePage + 1;
+      console.log('fling target:', targetPage, 'velo', velocity, 'activePage', pi.activePage);
     } else {
-      console.log(pi);
-      
       targetPage = (pi.pageOffset > TIPPING_POINT) ?
         pi.activePage + 1 : pi.activePage;
       console.log('target', targetPage);
     }
+    return targetPage;
   }
 
   function handleOnScroll(position) {
@@ -101,45 +105,28 @@ function ViewPager(elem, options) {
 
     onDrag : function (p) {
       if (!active) return;
-      console.log(p);
+      // console.log(p);
       position.x += p.dx;
       scroller.forceFinished(true);
       handleOnScroll(position.x);
-      determineTargetPage(position.x);
     },
         
     onFling : function (p, v) {
       if (!active) return;
-      console.log('fling', p, v);
+      console.log('fling', p, v.vx);
+      var velo = DIRECTION_HORIZONTAL ? v.vx : v.vy;
+      var deltaPx = DIRECTION_HORIZONTAL ? p.totaldx : p.totaldy;
 
+      var targetPage = determineTargetPage(position.x, deltaPx, velo);
+      var targetOffsetPx = targetPage * elem_size;
+      // var deltaOffset = -targetOffsetPx - position.x;
+      var deltaOffset = (-position.x) - targetOffsetPx;
 
-      determineTargetPage(position.x, p.totaldx, v);
-      // Give the velocity and position where should i go
-      var velocity = Math.abs(v.vx);
+      console.log('show anim to page', targetPage, 'atOffset', targetOffsetPx, 'detla', deltaOffset);
 
-      if (Math.abs(v.vx) === 0) {
-        var pos = Utils.roundTo(position.x, elem_size); // TODO tipping point config
         scroller.startScroll(position.x, 0,
-                             pos - position.x, 0,
-                             1500);
-        console.log('NO_FLING', position.x, pos, elem_size);
-      } else {
-        // v.vx minimum velocity
-        scroller.fling(position.x, 0, // startx, starty
-                       // vx, vy, //velocityX, velocityY,
-                       v.vx * 1000, //velocityX
-                       0); //velocityY
-        var finalX = scroller.getFinalX();
-        var roundedX = Utils.roundTo(finalX, elem_size);
-        console.log('roundedX', roundedX, 'currentX', position.x);
-        if (Math.abs(roundedX - position.x) > elem_size) {
-          var roundedXFrom = roundedX;
-          roundedX = Utils.roundTo(position.x + (elem_size * Utils.sign(v.vx)), elem_size); // Goto nearest, TODO tipping point
-          console.log('GOING FAAAAAR ', roundedXFrom , " - > ", roundedX);
-        }
-        scroller.setFinalX(roundedX);
-        console.log('FLING start, finish', finalX, roundedX);
-      }
+                             deltaOffset, 0,
+                             200);
       animate();
     }
   });
@@ -166,7 +153,7 @@ function ViewPager(elem, options) {
       
       position.x = scrollX;
 
-      console.log('animage', position.x);
+      // console.log('animate', position.x);
       handleOnScroll(position.x);
 
       if (is_animating) {
@@ -189,7 +176,7 @@ function ViewPager(elem, options) {
 
 module.exports = ViewPager;
 
-},{"./events":1,"./gesture_detector":3,"./raf":4,"./scroller":5,"./utils":6}],3:[function(require,module,exports){
+},{"./events":1,"./gesture_detector":3,"./raf":4,"./scroller":5,"./utils":6}],3:[function(_dereq_,module,exports){
 /*global console, window, require, module */
 'use strict';
 
@@ -217,8 +204,8 @@ function GestureDetector(elem, options) {
       ev_move_name = has_touch ? 'touchmove' : 'mousemove',
       ev_end_name = has_touch ? ['touchend', 'touchcancel'] : ['mouseup', 'mousecancel'],
       
-      Events = require('./events'),
-      vtracker = new (require('./velocity_tracker'))(),
+      Events = _dereq_('./events'),
+      vtracker = new (_dereq_('./velocity_tracker'))(),
       container = window,
       self = this,
 
@@ -349,7 +336,7 @@ function GestureDetector(elem, options) {
 
 module.exports = GestureDetector;
 
-},{"./events":1,"./velocity_tracker":7}],4:[function(require,module,exports){
+},{"./events":1,"./velocity_tracker":7}],4:[function(_dereq_,module,exports){
 /*global module, clearTimeout, window*/
 'use strict';
 
@@ -385,7 +372,7 @@ if (!window.cancelAnimationFrame) {
 module.exports.requestAnimationFrame = window.requestAnimationFrame;
 module.exports.cancelAnimationFrame = window.cancelAnimationFrame;
 
-},{}],5:[function(require,module,exports){
+},{}],5:[function(_dereq_,module,exports){
 /*global require, module, console */
 'use strict';
 
@@ -1070,7 +1057,7 @@ function Scroller(interpolator, flywheel) {
 
 module.exports = Scroller;
 
-},{}],6:[function(require,module,exports){
+},{}],6:[function(_dereq_,module,exports){
 /*global module*/
 'use strict';
 
@@ -1105,7 +1092,7 @@ module.exports = {
   }
 };
 
-},{}],7:[function(require,module,exports){
+},{}],7:[function(_dereq_,module,exports){
 /*global require, module, console */
 'use strict';
 

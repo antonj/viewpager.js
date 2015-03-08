@@ -17,7 +17,7 @@ function ViewPager(elem, options) {
 
       MIN_DISTANCE_FOR_FLING = 25, // px
       MAX_SETTLE_DURATION = 600, // ms
-      MIN_FLING_VELOCITY = 400, // TODO unit
+      MIN_FLING_VELOCITY = 0.4, // px / ms
 
       elem_size = DIRECTION_HORIZONTAL ? elem.offsetWidth : elem.offsetHeight,
       noop = function () {},
@@ -40,20 +40,24 @@ function ViewPager(elem, options) {
     };
   }
 
+  /**
+   * @return targetPage {Number} Page to scroll to
+   */
   function determineTargetPage(position, deltaX, velocity) {
+    console.log('determineTargetPage', position, deltaX, velocity);
     var pi = positionInfo(position);
-
     var targetPage;
+    console.log('detltaX', deltaX, 'velocity', velocity);
     if (Math.abs(deltaX) > MIN_DISTANCE_FOR_FLING && 
         Math.abs(velocity) > MIN_FLING_VELOCITY) {
       targetPage = velocity > 0 ? pi.activePage : pi.activePage + 1;
+      console.log('fling target:', targetPage, 'velo', velocity, 'activePage', pi.activePage);
     } else {
-      console.log(pi);
-      
       targetPage = (pi.pageOffset > TIPPING_POINT) ?
         pi.activePage + 1 : pi.activePage;
       console.log('target', targetPage);
     }
+    return targetPage;
   }
 
   function handleOnScroll(position) {
@@ -74,45 +78,28 @@ function ViewPager(elem, options) {
 
     onDrag : function (p) {
       if (!active) return;
-      console.log(p);
+      // console.log(p);
       position.x += p.dx;
       scroller.forceFinished(true);
       handleOnScroll(position.x);
-      determineTargetPage(position.x);
     },
         
     onFling : function (p, v) {
       if (!active) return;
-      console.log('fling', p, v);
+      console.log('fling', p, v.vx);
+      var velo = DIRECTION_HORIZONTAL ? v.vx : v.vy;
+      var deltaPx = DIRECTION_HORIZONTAL ? p.totaldx : p.totaldy;
 
+      var targetPage = determineTargetPage(position.x, deltaPx, velo);
+      var targetOffsetPx = targetPage * elem_size;
+      // var deltaOffset = -targetOffsetPx - position.x;
+      var deltaOffset = (-position.x) - targetOffsetPx;
 
-      determineTargetPage(position.x, p.totaldx, v);
-      // Give the velocity and position where should i go
-      var velocity = Math.abs(v.vx);
+      console.log('show anim to page', targetPage, 'atOffset', targetOffsetPx, 'detla', deltaOffset);
 
-      if (Math.abs(v.vx) === 0) {
-        var pos = Utils.roundTo(position.x, elem_size); // TODO tipping point config
         scroller.startScroll(position.x, 0,
-                             pos - position.x, 0,
-                             1500);
-        console.log('NO_FLING', position.x, pos, elem_size);
-      } else {
-        // v.vx minimum velocity
-        scroller.fling(position.x, 0, // startx, starty
-                       // vx, vy, //velocityX, velocityY,
-                       v.vx * 1000, //velocityX
-                       0); //velocityY
-        var finalX = scroller.getFinalX();
-        var roundedX = Utils.roundTo(finalX, elem_size);
-        console.log('roundedX', roundedX, 'currentX', position.x);
-        if (Math.abs(roundedX - position.x) > elem_size) {
-          var roundedXFrom = roundedX;
-          roundedX = Utils.roundTo(position.x + (elem_size * Utils.sign(v.vx)), elem_size); // Goto nearest, TODO tipping point
-          console.log('GOING FAAAAAR ', roundedXFrom , " - > ", roundedX);
-        }
-        scroller.setFinalX(roundedX);
-        console.log('FLING start, finish', finalX, roundedX);
-      }
+                             deltaOffset, 0,
+                             200);
       animate();
     }
   });
@@ -139,7 +126,7 @@ function ViewPager(elem, options) {
       
       position.x = scrollX;
 
-      console.log('animage', position.x);
+      // console.log('animate', position.x);
       handleOnScroll(position.x);
 
       if (is_animating) {

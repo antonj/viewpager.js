@@ -7,7 +7,8 @@ var gulp = require('gulp'),
     merge = require('merge-stream'),
     browserify = require('gulp-browserify'),
     jshint = require('gulp-jshint'),
-    browserSync = require('browser-sync');
+    browserSync = require('browser-sync'),
+    reload = browserSync.reload;
 
 
 function out(src, standAloneName) {
@@ -24,8 +25,8 @@ gulp.task('js', function () {
                out('./src/velocity_tracker.js', 'VelocityTracker'));
 });
 
-gulp.task('minjs', ['js'], function () {
-  return gulp.src(['./dist/*.js', '!./dist/*.min.js'])
+gulp.task('minjs', function () {
+  return gulp.src(['./dist/*.js', '!./**/*.min.js'])
     .pipe(guglify())
     .pipe(grename({ extname: '.min.js'}))
     .pipe(gulp.dest('./dist'));
@@ -42,14 +43,14 @@ gulp.task('browser-sync', function() {
 });
 
 gulp.task('watch', function() {
-  gulp.watch(['src/**/*.js'], ['js']);
-  gulp.watch(['./dist/*.js', '!./dist/*.min.js'],
-             ['minjs', browserSync.reload]);
+  gulp.watch(['./src/**/*.js'], ['js']);
+  gulp.watch(['./dist/*.js', '!./dist/*.min.js'], ['minjs', reload]);
   gulp.watch(['./examples/**/*.js',
               './examples/**/*.html',
-              './examples/**/*.css'],
-             ['minjs', browserSync.reload]);
+              './examples/**/*.css'], reload);
 });
 
 
-gulp.task('default', ['lint', 'js', 'minjs', 'watch', 'browser-sync']);
+gulp.task('dist', ['lint', 'js', 'minjs']);//, 'browser-sync']);
+gulp.task('default', ['lint', 'js', 'watch', 'browser-sync']);
+

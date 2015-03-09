@@ -9,10 +9,8 @@ var vp = new ViewPager(view_pager_elem, {
   pages: item_container.children.length,
   vertical: true,
   tipping_point: 0.2, // only move 0.2 from start to trigger change if released
-  onPageScroll : function (offset, page) {
-    console.log(offset, page);
-    item_container.style['-webkit-transform'] = 'translate3d(0px, ' + ((-offset * h) - (page * h)) + 'px, 0px)';
-
+  onPageScroll : function (totalOffset, activePage, pageOffset) {
+    item_container.style['-webkit-transform'] = 'translate3d(0px, ' + (totalOffset * h) + 'px, 0px)';
   },
 
   onPageChange : function (page) {

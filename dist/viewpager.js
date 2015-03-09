@@ -54,12 +54,14 @@ function ViewPager(elem, options) {
 
       active = false,
       scroller = new Scroller(),
-      position = { x: 0, y: 0 };
+
+      /** Internal state */
+      position = 0;
   
   function positionInfo(position) { 
-    var p = Math.abs(position);
+    var p = -position;
     var totalOffset = p / elem_size;
-    var activePage = Math.max(0, Math.floor(totalOffset));
+    var activePage = Math.floor(totalOffset);
     return {
       totalOffset : totalOffset,
       activePage : activePage,
@@ -70,19 +72,24 @@ function ViewPager(elem, options) {
   /**
    * @return targetPage {Number} Page to scroll to
    */
-  function determineTargetPage(position, deltaX, velocity) {
-    console.log('determineTargetPage', position, deltaX, velocity);
+  function determineTargetPage(position, deltaPx, velocity) {
+    console.log('determineTargetPage', position, deltaPx, velocity);
     var pi = positionInfo(position);
     var targetPage;
-    console.log('detltaX', deltaX, 'velocity', velocity);
-    if (Math.abs(deltaX) > MIN_DISTANCE_FOR_FLING && 
+    console.log('detltaX', deltaPx, 'velocity', velocity);
+    if (Math.abs(deltaPx) > MIN_DISTANCE_FOR_FLING && 
         Math.abs(velocity) > MIN_FLING_VELOCITY) {
       targetPage = velocity > 0 ? pi.activePage : pi.activePage + 1;
       console.log('fling target:', targetPage, 'velo', velocity, 'activePage', pi.activePage);
     } else {
+      // TODO fix tipping point other direction
+      // console.log(pi.pageOffset);
       targetPage = (pi.pageOffset > TIPPING_POINT) ?
         pi.activePage + 1 : pi.activePage;
       console.log('target', targetPage);
+    }
+    if (PAGES) {
+      targetPage = Utils.clamp(targetPage, 0, PAGES - 1);
     }
     return targetPage;
   }
@@ -98,17 +105,17 @@ function ViewPager(elem, options) {
     onFirstDrag : function (p) {
       // prevent default scroll if we move in paging direction
       active =  DIRECTION_HORIZONTAL ? Math.abs(p.dx) > Math.abs(p.dy) : Math.abs(p.dx) < Math.abs(p.dy);
-      if (active) {
+      if (active || PREVENT_ALL_NATIVE_SCROLLING) {
         p.event.preventDefault();
       }
     },
 
     onDrag : function (p) {
       if (!active) return;
-      // console.log(p);
-      position.x += p.dx;
+      console.log(p);
+      position += DIRECTION_HORIZONTAL ? p.dx : p.dy;
       scroller.forceFinished(true);
-      handleOnScroll(position.x);
+      handleOnScroll(position);
     },
         
     onFling : function (p, v) {
@@ -117,16 +124,15 @@ function ViewPager(elem, options) {
       var velo = DIRECTION_HORIZONTAL ? v.vx : v.vy;
       var deltaPx = DIRECTION_HORIZONTAL ? p.totaldx : p.totaldy;
 
-      var targetPage = determineTargetPage(position.x, deltaPx, velo);
+      var targetPage = determineTargetPage(position, deltaPx, velo);
       var targetOffsetPx = targetPage * elem_size;
-      // var deltaOffset = -targetOffsetPx - position.x;
-      var deltaOffset = (-position.x) - targetOffsetPx;
+      var deltaOffset = (-position) - targetOffsetPx;
 
       console.log('show anim to page', targetPage, 'atOffset', targetOffsetPx, 'detla', deltaOffset);
 
-        scroller.startScroll(position.x, 0,
-                             deltaOffset, 0,
-                             200);
+      scroller.startScroll(position, 0,
+                           deltaOffset, 0,
+                           ANIM_DURATION_MAX);
       animate();
     }
   });
@@ -135,26 +141,20 @@ function ViewPager(elem, options) {
     console.log('anim end');
   }
 
-  function animate(duration, backwards) {
-    duration = duration || ANIM_DURATION_MAX;
-
+  function animate() {
     raf(update);
     function update () {
       var is_animating = scroller.computeScrollOffset();
       var scrollX = scroller.getCurrX();
-
-      // No more than one page at a time
-      // scrollX = Utils.clamp(scrollX, 0, elem_size);
       
       // Check done
       if (scrollX === 0 || scrollX === elem_size) {
         scroller.forceFinished(true);
       }
       
-      position.x = scrollX;
+      position = scrollX;
 
-      // console.log('animate', position.x);
-      handleOnScroll(position.x);
+      handleOnScroll(position);
 
       if (is_animating) {
         raf(update);
@@ -163,13 +163,21 @@ function ViewPager(elem, options) {
       }
     }
   }
-  /** move_diff_pxe API */
+
   return {
-    next : function () {
-      animate(true, 500);
+    next : function (duration) {
+      var t = duration !== undefined ? Math.abs(duration) : ANIM_DURATION_MAX;
+      scroller.startScroll(position, 0,
+                           -elem_size, 0,
+                           t);
+      animate();
     },
-    previous : function() {
-      animate(true, 500, true);
+    previous : function(duration) {
+      var t = duration !== undefined ? Math.abs(duration) : ANIM_DURATION_MAX;
+      scroller.startScroll(position, 0,
+                           elem_size, 0,
+                           t);
+      animate();
     }
   };
 }
@@ -282,9 +290,8 @@ function GestureDetector(elem, options) {
     },
 
     onMove : function (e) {
-      var p = getPoint(e);
-
       if (is_dragging) {
+        var p = getPoint(e);
         vtracker.addMovement(p);
         var dragData = getDragData(p);
 
@@ -301,6 +308,7 @@ function GestureDetector(elem, options) {
     },
 
     onUp : function (e) {
+      if (!is_dragging) { return; }
       var p = getPoint(e);
       var dragData = getDragData(p);
       if (is_dragging) {

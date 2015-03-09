@@ -1,29 +1,42 @@
+* {
+   -webkit-box-sizing: border-box;
+   box-sizing: border-box;
+}
+
 html, body {
    margin: 0;
    padding: 0;
+   width: 100%;
 }
 
 .pager {
-   position: absolute;
-   left: 10%;
-   width: 500px;
-   height: 100%;
-   /* left: 25%; */
+   position: relative;
+   margin: 0 auto;
+   top: 5px;
+   width: 320px;
+   height: 80%;
    overflow: hidden;
+   outline: 1px solid blue;
 }
 
 .pager_items {
-   width: calc(100% * 6);
-   height: 90%;
+   width: calc(100% * 6);;
+   height: 100%;
    overflow: hidden;
-   outline: 1px solid blue;
 }
 
 img {
    position: relative;
    display: block;
    float: left;
-   width: calc(100% / 6);
+   width: 16.6666666666666666666667%; /* calc(100% / 6); */
    height: 100%;
-   outline: 1px solid red;
+   padding: 2px;
+   /* outline: 1px solid red; */
+}
+
+.buttons {
+   position: relative;
+   text-align: center;
+   margin-top: 10px;
 }

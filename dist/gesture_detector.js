@@ -130,9 +130,8 @@ function GestureDetector(elem, options) {
     },
 
     onMove : function (e) {
-      var p = getPoint(e);
-
       if (is_dragging) {
+        var p = getPoint(e);
         vtracker.addMovement(p);
         var dragData = getDragData(p);
 
@@ -149,6 +148,7 @@ function GestureDetector(elem, options) {
     },
 
     onUp : function (e) {
+      if (!is_dragging) { return; }
       var p = getPoint(e);
       var dragData = getDragData(p);
       if (is_dragging) {

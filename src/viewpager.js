@@ -42,6 +42,10 @@ function ViewPager(elem, options) {
     };
   }
 
+  function deltaToPage(pageIndex) {
+    return(-position) - (pageIndex * elem_size);
+  }
+
   /**
    * @return targetPage {Number} Page to scroll to
    */
@@ -96,13 +100,9 @@ function ViewPager(elem, options) {
       console.log('fling', p, v.vx);
       var velo = DIRECTION_HORIZONTAL ? v.vx : v.vy;
       var deltaPx = DIRECTION_HORIZONTAL ? p.totaldx : p.totaldy;
-
-      var targetPage = determineTargetPage(position, deltaPx, velo);
-      var targetOffsetPx = targetPage * elem_size;
-      var deltaOffset = (-position) - targetOffsetPx;
-
-      console.log('show anim to page', targetPage, 'atOffset', targetOffsetPx, 'detla', deltaOffset);
-
+      
+      var deltaOffset = deltaToPage(determineTargetPage(position, deltaPx, velo));
+      
       scroller.startScroll(position, 0,
                            deltaOffset, 0,
                            ANIM_DURATION_MAX);
@@ -149,6 +149,19 @@ function ViewPager(elem, options) {
       var t = duration !== undefined ? Math.abs(duration) : ANIM_DURATION_MAX;
       scroller.startScroll(position, 0,
                            elem_size, 0,
+                           t);
+      animate();
+    },
+
+    goToIndex : function (page, duration) {
+      var t = duration !== undefined ? Math.abs(duration) : ANIM_DURATION_MAX;
+      if (PAGES) {
+        page = Utils.clamp(page, 0, PAGES - 1);
+      }
+      var delta = deltaToPage(page);
+      
+      scroller.startScroll(position, 0,
+                           delta, 0,
                            t);
       animate();
     }

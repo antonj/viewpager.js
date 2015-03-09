@@ -60,7 +60,7 @@ function ViewPager(elem, options) {
       console.log('fling target:', targetPage, 'velo', velocity, 'activePage', pi.activePage);
     } else {
       // TODO fix tipping point other direction
-      // console.log(pi.pageOffset);
+      console.log('tipping', pi);
       targetPage = (pi.pageOffset > TIPPING_POINT) ?
         pi.activePage + 1 : pi.activePage;
       console.log('target', targetPage);
@@ -118,14 +118,7 @@ function ViewPager(elem, options) {
     raf(update);
     function update () {
       var is_animating = scroller.computeScrollOffset();
-      var scrollX = scroller.getCurrX();
-      
-      // Check done
-      if (scrollX === 0 || scrollX === elem_size) {
-        scroller.forceFinished(true);
-      }
-      
-      position = scrollX;
+      position = scroller.getCurrX();
 
       handleOnScroll(position);
 
@@ -140,15 +133,24 @@ function ViewPager(elem, options) {
   return {
     next : function (duration) {
       var t = duration !== undefined ? Math.abs(duration) : ANIM_DURATION_MAX;
+      var page = positionInfo(position).activePage + 1;
+      if (PAGES) {
+        page = Utils.clamp(page, 0, PAGES - 1);
+      }
+      
       scroller.startScroll(position, 0,
-                           -elem_size, 0,
+                           deltaToPage(page), 0,
                            t);
       animate();
     },
     previous : function(duration) {
       var t = duration !== undefined ? Math.abs(duration) : ANIM_DURATION_MAX;
+      var page = positionInfo(position).activePage - 1;
+      if (PAGES) {
+        page = Utils.clamp(page, 0, PAGES - 1);
+      }
       scroller.startScroll(position, 0,
-                           elem_size, 0,
+                           deltaToPage(page), 0,
                            t);
       animate();
     },
@@ -159,7 +161,7 @@ function ViewPager(elem, options) {
         page = Utils.clamp(page, 0, PAGES - 1);
       }
       var delta = deltaToPage(page);
-      
+      console.log(delta);
       scroller.startScroll(position, 0,
                            delta, 0,
                            t);

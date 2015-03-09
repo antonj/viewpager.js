@@ -1,6 +1,7 @@
-/*global require, module, console */
+/*global require, module */
 'use strict';
 
+var console = require('./console');
 
 /*
  * Port of Android Scroller http://developer.android.com/reference/android/widget/Scroller.html
@@ -19,17 +20,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-// package android.widget;
-
-// import android.content.Context;
-// import android.hardware.SensorManager;
-// import android.os.Build;
-// import android.util.FloatMath;
-// import android.view.ViewConfiguration;
-// import android.view.animation.AnimationUtils;
-// import android.view.animation.Interpolator;
-
 
 /**
  * <p>This class encapsulates scrolling. You can use scrollers ({@link Scroller}
@@ -218,7 +208,6 @@ function Scroller(interpolator, flywheel) {
    * null, the default (viscous) interpolator will be used. Specify whether or
    * not to support progressive "flywheel" behavior in flinging.
    */
-  // public Scroller(Context context, Interpolator interpolator, boolean flywheel) {
   {
     mFinished = true;
     mInterpolator = interpolator;
@@ -229,9 +218,11 @@ function Scroller(interpolator, flywheel) {
 
     mPhysicalCoeff = computeDeceleration(0.84); // look and feel tuning
   }
-  // }
 
-  // private float computeDeceleration(float friction) {
+  /**
+   * @param {Number} friction - float
+   * @return {Number} - float
+   */
   function computeDeceleration(friction) {
     return (GRAVITY_EARTH * // g (m/s^2)
             39.37 *         // inch/meter
@@ -239,12 +230,18 @@ function Scroller(interpolator, flywheel) {
             friction);
   }
 
-  // private double getSplineDeceleration(float velocity) {
+  /**
+   * @param {Number} velocity - float
+   * @return {Number} double
+   */
   function getSplineDeceleration(velocity) {
     return Math.log(INFLEXION * Math.abs(velocity) / (mFlingFriction * mPhysicalCoeff));
   }
 
-  // private int getSplineFlingDuration(float velocity) {
+  /**
+   * @param {Number} velocity - float
+   * @return {Number} integer
+   */
   function getSplineFlingDuration(velocity) {
     var l = getSplineDeceleration(velocity);
     var decelMinusOne = DECELERATION_RATE - 1.0;
@@ -252,14 +249,20 @@ function Scroller(interpolator, flywheel) {
     return Math.floor(1000.0 * Math.exp(l / decelMinusOne));
   }
 
-  // private double getSplineFlingDistance(float velocity) {
+  /**
+   * @param {Number} velocity - float
+   * @return {Number} double
+   */
   function getSplineFlingDistance(velocity) {
     var l = getSplineDeceleration(velocity);
     var decelMinusOne = DECELERATION_RATE - 1.0;
     return mFlingFriction * mPhysicalCoeff * Math.exp(DECELERATION_RATE / decelMinusOne * l);
   }
 
-  /** static float viscousFluid(float x) */
+  /**
+   * @param {Number} x - float
+   * @return {Number} float
+   */
   function viscousFluid(x) {
     x *= sViscousFluidScale;
     if (x < 1.0) {
@@ -278,10 +281,9 @@ function Scroller(interpolator, flywheel) {
   /**
    * Returns the current velocity.
    *
-   * @return The original velocity less the deceleration. Result may be
-   * negative.
+   * @return {Number} - float. The original velocity less the
+   * deceleration. Result may be negative.
    */
-  // public float getCurrVelocity() {
   function getCurrVelocity() {
     return mMode === FLING_MODE ?
       mCurrVelocity : mVelocity - mDeceleration * timePassed() / 2000.0;
@@ -290,9 +292,8 @@ function Scroller(interpolator, flywheel) {
   /**
    * Returns the time elapsed since the beginning of the scrolling.
    *
-   * @return The elapsed time in milliseconds.
+   * @return {Number} - integer. The elapsed time in milliseconds.
    */
-  // public int timePassed() {
   function timePassed() {
     return currentAnimationTimeMillis() - mStartTime;
   }
@@ -302,9 +303,9 @@ function Scroller(interpolator, flywheel) {
      *
      * Returns whether the scroller has finished scrolling.
      *
-     * @return True if the scroller has finished scrolling, false otherwise.
+     * @return {boolean} True if the scroller has finished scrolling,
+     * false otherwise.
      */
-    // public final boolean isFinished() {
     isFinished : function isFinished() {
       return mFinished;
     },
@@ -314,10 +315,9 @@ function Scroller(interpolator, flywheel) {
      * The amount of friction applied to flings. The default value
      * is {@link ViewConfiguration#getScrollFriction}.
      *
-     * @param friction A scalar dimension-less value representing the coefficient of
-     *         friction.
+     * @param friction {Number} - float. A scalar dimension-less value
+     *         representing the coefficient of friction.
      */
-    // public final void setFriction(float friction) {
     setFriction : function setFriction(friction) {
       mDeceleration = computeDeceleration(friction);
       mFlingFriction = friction;
@@ -326,9 +326,8 @@ function Scroller(interpolator, flywheel) {
     /**
      * Force the finished field to a particular value.
      *
-     * @param finished The new finished value.
+     * @param finished {boolean} The new finished value.
      */
-    // public final void forceFinished(boolean finished) {
     forceFinished : function forceFinished(finished) {
       mFinished = finished;
     },
@@ -336,9 +335,8 @@ function Scroller(interpolator, flywheel) {
     /**
      * Returns how long the scroll event will take, in milliseconds.
      *
-     * @return The duration of the scroll in milliseconds.
+     * @return {Number} - integer. The duration of the scroll in milliseconds.
      */
-    // public final int getDuration() {
     getDuration : function getDuration() {
       return mDuration;
     },
@@ -346,8 +344,8 @@ function Scroller(interpolator, flywheel) {
     /**
      * Returns the current X offset in the scroll.
      *
-     * @return The new X offset as an absolute distance from the origin.
-     // public final int getCurrX() {
+     * @return {Number} - integer. The new X offset as an absolute
+     * distance from the origin.
      */
     getCurrX : function getCurrX() {
       return mCurrX;
@@ -356,7 +354,8 @@ function Scroller(interpolator, flywheel) {
     /**
      * Returns the current Y offset in the scroll.
      *
-     * @return The new Y offset as an absolute distance from the origin.
+     * @return {Number} - integer. The new Y offset as an absolute
+     * distance from the origin.
      */
     // public final int getCurrY() {
     getCurrY : function getCurrY() {
@@ -374,9 +373,9 @@ function Scroller(interpolator, flywheel) {
     /**
      * Returns the start X offset in the scroll.
      *
-     * @return The start X offset as an absolute distance from the origin.
+     * @return {Number} - integer. The start X offset as an absolute
+     * distance from the origin.
      */
-    // public final int getStartX() {
     getStartX : function getStartX() {
       return mStartX;
     },
@@ -384,9 +383,9 @@ function Scroller(interpolator, flywheel) {
     /**
      * Returns the start Y offset in the scroll.
      *
-     * @return The start Y offset as an absolute distance from the origin.
+     * @return {Number} - integer. The start Y offset as an absolute
+     * distance from the origin.
      */
-    // public final int getStartY() {
     getStartY : function getStartY() {
       return mStartY;
     },
@@ -394,9 +393,8 @@ function Scroller(interpolator, flywheel) {
     /**
      * Returns where the scroll will end. Valid only for "fling" scrolls.
      *
-     * @return The final X offset as an absolute distance from the origin.
+     * @return {Number} - integer. The final X offset as an absolute distance from the origin.
      */
-    // public final int getFinalX() {
     getFinalX : function getFinalX() {
       return mFinalX;
     },
@@ -404,18 +402,18 @@ function Scroller(interpolator, flywheel) {
     /**
      * Returns where the scroll will end. Valid only for "fling" scrolls.
      *
-     * @return The final Y offset as an absolute distance from the origin.
+     * @return {Number} - integer. The final Y offset as an absolute
+     * distance from the origin.
      */
-    // public final int getFinalY() {
     getFinalY : function getFinalY() {
       return mFinalY;
     },
 
     /**
-     * Call this when you want to know the new location.  If it returns true,
-     * the animation is not yet finished.
+     * Call this when you want to know the new location.
+     * @return {boolean} If it true, the animation is not yet
+     * finished.
      */
-    // public boolean computeScrollOffset() {
     computeScrollOffset : function computeScrollOffset() {
       if (mFinished) {
         return false;
@@ -428,7 +426,6 @@ function Scroller(interpolator, flywheel) {
         switch (mMode) {
         case SCROLL_MODE:
           var x = timePassed * mDurationReciprocal;
-
           if (mInterpolator === undefined) {
             x = viscousFluid(x);
           } else {
@@ -616,7 +613,6 @@ function Scroller(interpolator, flywheel) {
      *
      * @see #forceFinished(boolean)
      */
-    // public void abortAnimation() {
     abortAnimation : function abortAnimation() {
       mCurrX = mFinalX;
       mCurrY = mFinalY;
@@ -644,19 +640,18 @@ function Scroller(interpolator, flywheel) {
     /**
      * Returns the time elapsed since the beginning of the scrolling.
      *
-     * @return The elapsed time in milliseconds.
+     * @return {Number} - integer. The elapsed time in milliseconds.
      */
-    // public int timePassed() {
     timePassed : timePassed,
 
     /**
      * Sets the final position (X) for this scroller.
      *
-     * @param newX The new X offset as an absolute distance from the origin.
+     * @param newX {Number} - integer. The new X offset as an absolute
+     * distance from the origin.
      * @see #extendDuration(int)
      * @see #setFinalY(int)
      */
-    // public void setFinalX(int newX) {
     setFinalX : function setFinalX(newX) {
       mFinalX = newX;
       mDeltaX = mFinalX - mStartX;
@@ -666,11 +661,11 @@ function Scroller(interpolator, flywheel) {
     /**
      * Sets the final position (Y) for this scroller.
      *
-     * @param newY The new Y offset as an absolute distance from the origin.
+     * @param newY {Number} - integer. The new Y offset as an absolute
+     * distance from the origin.
      * @see #extendDuration(int)
      * @see #setFinalX(int)
      */
-    // public void setFinalY(int newY) {
     setFinalY : function setFinalY(newY) {
       mFinalY = newY;
       mDeltaY = mFinalY - mStartY;
@@ -680,7 +675,6 @@ function Scroller(interpolator, flywheel) {
     /**
      * @hide
      */
-    // public boolean isScrollingInDirection(float xvel, float yvel) {
     isScrollingInDirection : function isScrollingInDirection(xvel, yvel) {
       return !mFinished && signum(xvel) === signum(mFinalX - mStartX) &&
         signum(yvel) === signum(mFinalY - mStartY);

@@ -421,7 +421,7 @@ function Scroller(interpolator, flywheel) {
         return false;
       }
 
-      var timePassed = currentAnimationTimeMillis() - mStartTime;
+      var timePassed = Math.floor(currentAnimationTimeMillis() - mStartTime);
 
       // NOTE never let time run out?
       if (true || timePassed < mDuration) {
@@ -508,8 +508,14 @@ function Scroller(interpolator, flywheel) {
      *        content up.
      * @param duration Duration of the scroll in milliseconds.
      */
-    // public void startScroll(int startX, int startY, int dx, int dy, int duration) {
     startScroll : function startScroll(startX, startY, dx, dy, duration) {
+      if (duration == 0) {
+        mFinished = true;
+        mCurrX = startX + dx;
+        mCurrY = startY + dy;
+        return;
+      }
+
       mMode = SCROLL_MODE;
       mFinished = false;
       mDuration = duration === undefined ? DEFAULT_DURATION : duration;
@@ -621,14 +627,16 @@ function Scroller(interpolator, flywheel) {
      * Extend the scroll animation. This allows a running animation to scroll
      * further and longer, when used with {@link #setFinalX(int)} or {@link #setFinalY(int)}.
      *
-     * @param extend Additional time to scroll in milliseconds.
+     * @param extend {Number} - integer. Additional time to scroll in milliseconds.
      * @see #setFinalX(int)
      * @see #setFinalY(int)
      */
-    // public void extendDuration(int extend) {
     extendDuration : function extendDuration(extend) {
       var passed = timePassed();
       mDuration = passed + extend;
+      if (mDuration === 0) {
+        throw 'Extend caused duration to be 0';
+      }
       mDurationReciprocal = 1.0 / mDuration;
       mFinished = false;
     },

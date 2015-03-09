@@ -51,6 +51,5 @@ gulp.task('watch', function() {
 });
 
 
-gulp.task('dist', ['lint', 'js', 'minjs']);//, 'browser-sync']);
+gulp.task('dist', ['js', 'minjs']);
 gulp.task('default', ['lint', 'js', 'watch', 'browser-sync']);
-

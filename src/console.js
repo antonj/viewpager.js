@@ -1,4 +1,4 @@
-/*global module*/
+/*global module, window*/
 'use strict';
 
 function noop() {}

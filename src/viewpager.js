@@ -1,11 +1,12 @@
-/*global window, require, console, module */
+/*global window, require, module */
 'use strict';
 
-var Utils = require('./utils');
-var raf = require('./raf').requestAnimationFrame;
-var Events = require('./events');
-var Scroller = require('./scroller');
-var GestureDetector = require('./gesture_detector');
+var Utils = require('./utils'),
+    raf = require('./raf').requestAnimationFrame,
+    console = require('./console'),
+    Events = require('./events'),
+    Scroller = require('./scroller'),
+    GestureDetector = require('./gesture_detector');
 
 function ViewPager(elem, options) {
   options = options || {};
@@ -30,7 +31,7 @@ function ViewPager(elem, options) {
 
       /** Internal state */
       position = 0;
-  
+
   function positionInfo(position) { 
     var p = -position;
     var totalOffset = p / elem_size;
@@ -53,17 +54,13 @@ function ViewPager(elem, options) {
     console.log('determineTargetPage', position, deltaPx, velocity);
     var pi = positionInfo(position);
     var targetPage;
-    console.log('detltaX', deltaPx, 'velocity', velocity);
     if (Math.abs(deltaPx) > MIN_DISTANCE_FOR_FLING && 
         Math.abs(velocity) > MIN_FLING_VELOCITY) {
       targetPage = velocity > 0 ? pi.activePage : pi.activePage + 1;
-      console.log('fling target:', targetPage, 'velo', velocity, 'activePage', pi.activePage);
     } else {
       // TODO fix tipping point other direction
-      console.log('tipping', pi);
       targetPage = (pi.pageOffset > TIPPING_POINT) ?
         pi.activePage + 1 : pi.activePage;
-      console.log('target', targetPage);
     }
     if (PAGES) {
       targetPage = Utils.clamp(targetPage, 0, PAGES - 1);
@@ -97,7 +94,6 @@ function ViewPager(elem, options) {
         
     onFling : function (p, v) {
       if (!active) return;
-      console.log('fling', p, v.vx);
       var velo = DIRECTION_HORIZONTAL ? v.vx : v.vy;
       var deltaPx = DIRECTION_HORIZONTAL ? p.totaldx : p.totaldy;
       
@@ -131,6 +127,12 @@ function ViewPager(elem, options) {
   }
 
   return {
+    /**
+     * Go to next page.
+     *
+     * @param {Number|boolean} duration Animation duration 0 or false
+     * for no animation.
+     */
     next : function (duration) {
       var t = duration !== undefined ? Math.abs(duration) : ANIM_DURATION_MAX;
       var page = positionInfo(position).activePage + 1;
@@ -143,6 +145,13 @@ function ViewPager(elem, options) {
                            t);
       animate();
     },
+
+    /**
+     * Go to previous page.
+     *
+     * @param {Number|boolean} duration Animation duration 0 or false
+     * for no animation.
+     */
     previous : function(duration) {
       var t = duration !== undefined ? Math.abs(duration) : ANIM_DURATION_MAX;
       var page = positionInfo(position).activePage - 1;
@@ -155,13 +164,17 @@ function ViewPager(elem, options) {
       animate();
     },
 
+    /**
+     * @param {Number} page index of page
+     * @param {Number|boolean} duration Animation duration 0 or false
+     * for no animation.
+     */
     goToIndex : function (page, duration) {
       var t = duration !== undefined ? Math.abs(duration) : ANIM_DURATION_MAX;
       if (PAGES) {
         page = Utils.clamp(page, 0, PAGES - 1);
       }
       var delta = deltaToPage(page);
-      console.log(delta);
       scroller.startScroll(position, 0,
                            delta, 0,
                            t);

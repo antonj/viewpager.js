@@ -133,8 +133,9 @@ function ViewPager(elem, options) {
      * for no animation.
      */
     next : function (duration) {
-      var t = duration !== undefined ? Math.abs(duration) : ANIM_DURATION_MAX;
-      var page = positionInfo(position).activePage + 1;
+      var t = duration !== undefined ? Math.abs(duration) : ANIM_DURATION_MAX,
+          pi = positionInfo(position),
+          page = pi.activePage + ((pi.pageOffset > 0) ? 2 : 1);
       if (PAGES) {
         page = Utils.clamp(page, 0, PAGES - 1);
       }
@@ -152,8 +153,9 @@ function ViewPager(elem, options) {
      * for no animation.
      */
     previous : function(duration) {
-      var t = duration !== undefined ? Math.abs(duration) : ANIM_DURATION_MAX;
-      var page = positionInfo(position).activePage - 1;
+      var t = duration !== undefined ? Math.abs(duration) : ANIM_DURATION_MAX,
+          page = positionInfo(position).activePage - 1;
+      
       if (PAGES) {
         page = Utils.clamp(page, 0, PAGES - 1);
       }

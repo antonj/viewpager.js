@@ -77,7 +77,6 @@ function ViewPager(elem, options) {
       TIPPING_POINT = options.tipping_point !== undefined ? options.tipping_point : 0.5,
 
       MIN_DISTANCE_FOR_FLING_MS = 25, // px
-      MAX_SETTLE_DURATION_MS = 600, // ms
       MIN_FLING_VELOCITY_PX_PER_MS = 0.4, // px / ms
 
       elem_size = DIRECTION_HORIZONTAL ? elem.offsetWidth : elem.offsetHeight,

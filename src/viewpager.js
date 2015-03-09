@@ -16,9 +16,8 @@ function ViewPager(elem, options) {
       DIRECTION_HORIZONTAL = !options.vertical,
       TIPPING_POINT = options.tipping_point !== undefined ? options.tipping_point : 0.5,
 
-      MIN_DISTANCE_FOR_FLING = 25, // px
-      MAX_SETTLE_DURATION = 600, // ms
-      MIN_FLING_VELOCITY = 0.4, // px / ms
+      MIN_DISTANCE_FOR_FLING_MS = 25, // px
+      MIN_FLING_VELOCITY_PX_PER_MS = 0.4, // px / ms
 
       elem_size = DIRECTION_HORIZONTAL ? elem.offsetWidth : elem.offsetHeight,
       noop = function () {},
@@ -54,8 +53,8 @@ function ViewPager(elem, options) {
     console.log('determineTargetPage', position, deltaPx, velocity);
     var pi = positionInfo(position);
     var targetPage;
-    if (Math.abs(deltaPx) > MIN_DISTANCE_FOR_FLING && 
-        Math.abs(velocity) > MIN_FLING_VELOCITY) {
+    if (Math.abs(deltaPx) > MIN_DISTANCE_FOR_FLING_MS && 
+        Math.abs(velocity) > MIN_FLING_VELOCITY_PX_PER_MS) {
       targetPage = velocity > 0 ? pi.activePage : pi.activePage + 1;
     } else {
       // TODO fix tipping point other direction

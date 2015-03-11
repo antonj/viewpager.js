@@ -1,10 +1,9 @@
-/*global window, require, module */
+/*global require, module */
 'use strict';
 
 var Utils = require('./utils'),
     raf = require('./raf').requestAnimationFrame,
     console = require('./console'),
-    Events = require('./events'),
     Scroller = require('./scroller'),
     GestureDetector = require('./gesture_detector');
 
@@ -28,11 +27,10 @@ function ViewPager(elem, options) {
       active = false,
       scroller = new Scroller(),
 
-      /** Internal state */
       position = 0;
 
   function deltaToPage(pageIndex) {
-    return(-position) - (pageIndex * elem_size);
+    return (-position) - (pageIndex * elem_size);
   }
 
   /**
@@ -47,8 +45,8 @@ function ViewPager(elem, options) {
         Math.abs(velocity) > MIN_FLING_VELOCITY_PX_PER_MS) {
       targetPage = velocity > 0 ? pi.activePage : pi.activePage + 1;
     } else { // NO FLING, check position
-      var totalDelta = Math.abs(deltaPx / elem_size);
-      var pageDelta = totalDelta - Math.floor(totalDelta);
+      var totalDelta = Math.abs(deltaPx / elem_size),
+          pageDelta = totalDelta - Math.floor(totalDelta);
       if (Math.abs(pageDelta) > TIPPING_POINT) {
         targetPage = pi.activePage + Math.ceil(pageDelta) * -direction;
         targetPage += (direction < 0) ? 0 : 1;
@@ -61,9 +59,9 @@ function ViewPager(elem, options) {
   }
   
   function positionInfo(position) { 
-    var p = -position;
-    var totalOffset = p / elem_size;
-    var activePage = Math.floor(totalOffset);
+    var p = -position,
+        totalOffset = p / elem_size,
+        activePage = Math.floor(totalOffset);
     return {
       totalOffset : totalOffset,
       activePage : activePage,
@@ -96,11 +94,9 @@ function ViewPager(elem, options) {
         
     onFling : function (p, v) {
       if (!active) return;
-      var velo = DIRECTION_HORIZONTAL ? v.vx : v.vy;
-      var deltaPx = DIRECTION_HORIZONTAL ? p.totaldx : p.totaldy;
-      
-      var deltaOffset = deltaToPage(determineTargetPage(position, deltaPx, velo));
-      
+      var velo = DIRECTION_HORIZONTAL ? v.vx : v.vy,
+          deltaPx = DIRECTION_HORIZONTAL ? p.totaldx : p.totaldy,
+          deltaOffset = deltaToPage(determineTargetPage(position, deltaPx, velo));
       scroller.startScroll(position, 0,
                            deltaOffset, 0,
                            ANIM_DURATION_MAX);
@@ -109,7 +105,7 @@ function ViewPager(elem, options) {
   });
 
   function handleAnimEnd() {
-    console.log('anim end');
+    onPageChange(-Math.round(position / elem_size));
   }
 
   function animate() {

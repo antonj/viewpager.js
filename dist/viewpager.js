@@ -62,7 +62,7 @@ module.exports = {
 'use strict';
 
 var Utils = _dereq_('./utils'),
-    raf = _dereq_('./raf').requestAnimationFrame,
+    Raf = _dereq_('./raf'),
     console = _dereq_('./console'),
     Scroller = _dereq_('./scroller'),
     GestureDetector = _dereq_('./gesture_detector');
@@ -85,6 +85,7 @@ function ViewPager(elem, options) {
       onSizeChanged = options.onSizeChanged || noop,
 
       active = false,
+      animationId,
       scroller = new Scroller(),
 
       position = 0;
@@ -169,7 +170,8 @@ function ViewPager(elem, options) {
   }
 
   function animate() {
-    raf(update);
+    Raf.cancelAnimationFrame(animationId);
+    animationId = Raf.requestAnimationFrame(update);
     function update () {
       var is_animating = scroller.computeScrollOffset();
       position = scroller.getCurrX();
@@ -177,7 +179,7 @@ function ViewPager(elem, options) {
       handleOnScroll(position);
 
       if (is_animating) {
-        raf(update);
+        animationId = Raf.requestAnimationFrame(update);
       } else {
         handleAnimEnd();
       }
@@ -438,8 +440,8 @@ if (!window.cancelAnimationFrame) {
   };
 }
 
-module.exports.requestAnimationFrame = window.requestAnimationFrame;
-module.exports.cancelAnimationFrame = window.cancelAnimationFrame;
+module.exports.requestAnimationFrame = window.requestAnimationFrame.bind(window);
+module.exports.cancelAnimationFrame = window.cancelAnimationFrame.bind(window);
 
 },{}],6:[function(_dereq_,module,exports){
 /*global require, module */

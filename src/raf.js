@@ -30,5 +30,5 @@ if (!window.cancelAnimationFrame) {
   };
 }
 
-module.exports.requestAnimationFrame = window.requestAnimationFrame;
-module.exports.cancelAnimationFrame = window.cancelAnimationFrame;
+module.exports.requestAnimationFrame = window.requestAnimationFrame.bind(window);
+module.exports.cancelAnimationFrame = window.cancelAnimationFrame.bind(window);

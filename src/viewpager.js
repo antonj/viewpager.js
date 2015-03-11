@@ -2,7 +2,7 @@
 'use strict';
 
 var Utils = require('./utils'),
-    raf = require('./raf').requestAnimationFrame,
+    Raf = require('./raf'),
     console = require('./console'),
     Scroller = require('./scroller'),
     GestureDetector = require('./gesture_detector');
@@ -25,6 +25,7 @@ function ViewPager(elem, options) {
       onSizeChanged = options.onSizeChanged || noop,
 
       active = false,
+      animationId,
       scroller = new Scroller(),
 
       position = 0;
@@ -109,7 +110,8 @@ function ViewPager(elem, options) {
   }
 
   function animate() {
-    raf(update);
+    Raf.cancelAnimationFrame(animationId);
+    animationId = Raf.requestAnimationFrame(update);
     function update () {
       var is_animating = scroller.computeScrollOffset();
       position = scroller.getCurrX();
@@ -117,7 +119,7 @@ function ViewPager(elem, options) {
       handleOnScroll(position);
 
       if (is_animating) {
-        raf(update);
+        animationId = Raf.requestAnimationFrame(update);
       } else {
         handleAnimEnd();
       }

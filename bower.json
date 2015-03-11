@@ -1,5 +1,5 @@
 {
-  "name": "viewpager",
+  "name": "viewpager.js",
   "version": "0.0.1",
   "authors": [
     "Anton Johansson <hello@antonj.se>",
@@ -9,6 +9,7 @@
   "main": "dist/viewpager.js",
   "keywords": [
     "scroller",
+    "slider",
     "pager",
     "slideshow"
   ],

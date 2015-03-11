@@ -91,6 +91,35 @@ function ViewPager(elem, options) {
       /** Internal state */
       position = 0;
 
+  function deltaToPage(pageIndex) {
+    return(-position) - (pageIndex * elem_size);
+  }
+
+  /**
+   * @return targetPage {Number} Page to scroll to
+   */
+  function determineTargetPage(position, deltaPx, velocity) {
+    var pi = positionInfo(position),
+        direction = Utils.sign(deltaPx),
+        targetPage = pi.activePage + Math.round(pi.pageOffset);
+    // FLING
+    if (Math.abs(deltaPx) > MIN_DISTANCE_FOR_FLING_MS && 
+        Math.abs(velocity) > MIN_FLING_VELOCITY_PX_PER_MS) {
+      targetPage = velocity > 0 ? pi.activePage : pi.activePage + 1;
+    } else { // NO FLING, check position
+      var totalDelta = Math.abs(deltaPx / elem_size);
+      var pageDelta = totalDelta - Math.floor(totalDelta);
+      if (Math.abs(pageDelta) > TIPPING_POINT) {
+        targetPage = pi.activePage + Math.ceil(pageDelta) * -direction;
+        targetPage += (direction < 0) ? 0 : 1;
+      }
+    }
+    if (PAGES) {
+      targetPage = Utils.clamp(targetPage, 0, PAGES - 1);
+    }
+    return targetPage;
+  }
+  
   function positionInfo(position) { 
     var p = -position;
     var totalOffset = p / elem_size;
@@ -100,31 +129,6 @@ function ViewPager(elem, options) {
       activePage : activePage,
       pageOffset : (totalOffset - activePage)
     };
-  }
-
-  function deltaToPage(pageIndex) {
-    return(-position) - (pageIndex * elem_size);
-  }
-
-  /**
-   * @return targetPage {Number} Page to scroll to
-   */
-  function determineTargetPage(position, deltaPx, velocity) {
-    console.log('determineTargetPage', position, deltaPx, velocity);
-    var pi = positionInfo(position);
-    var targetPage;
-    if (Math.abs(deltaPx) > MIN_DISTANCE_FOR_FLING_MS && 
-        Math.abs(velocity) > MIN_FLING_VELOCITY_PX_PER_MS) {
-      targetPage = velocity > 0 ? pi.activePage : pi.activePage + 1;
-    } else {
-      // TODO fix tipping point other direction
-      targetPage = (pi.pageOffset > TIPPING_POINT) ?
-        pi.activePage + 1 : pi.activePage;
-    }
-    if (PAGES) {
-      targetPage = Utils.clamp(targetPage, 0, PAGES - 1);
-    }
-    return targetPage;
   }
 
   function handleOnScroll(position) {
@@ -145,7 +149,6 @@ function ViewPager(elem, options) {
 
     onDrag : function (p) {
       if (!active) return;
-      console.log(p);
       position += DIRECTION_HORIZONTAL ? p.dx : p.dy;
       scroller.forceFinished(true);
       handleOnScroll(position);
@@ -951,7 +954,7 @@ function Scroller(interpolator, flywheel) {
      * @param duration Duration of the scroll in milliseconds.
      */
     startScroll : function startScroll(startX, startY, dx, dy, duration) {
-      if (duration == 0) {
+      if (duration === 0) {
         mFinished = true;
         mCurrX = startX + dx;
         mCurrY = startY + dy;
@@ -1134,32 +1137,74 @@ module.exports = Scroller;
 'use strict';
 
 module.exports = {
-  clamp : function (val, min, max) {
+  /**
+   * Clamp val between min and max
+   */
+  clamp : function clamp (val, min, max) {
     return Math.min(Math.max(val, min), max);
   },
 
-  map : function (value, istart, istop, ostart, ostop) {
+  /**
+   * map value in range [istart-istop] to range [ostart-ostop]
+   * map(5, 0, 10, 0, 100) -> 50
+   */
+  map : function map (value, istart, istop, ostart, ostop) {
     return ostart + (ostop - ostart) * ((value - istart) / (istop - istart));
   },
 
-  mapClamp : function (value, istart, istop, ostart, ostop) {
+  /**
+   * map value in range [istart-istop] to range [ostart-ostop], clamp values between [ostart-ostop]
+   * map(11, 0, 10, 0, 100) -> 100
+   */
+  mapClamp : function mapClamp (value, istart, istop, ostart, ostop) {
     return this.clamp(this.map(value, istart, istop, ostart, ostop),
                       ostart < ostop ? ostart : ostop, ostart < ostop ? ostop : ostart);
   },
 
-  roundTo : function (i, v) {
+  /**
+   * roundTo(4, 10) -> 0
+   * roundTo(5, 10) -> 10
+   * roundTo(6, 10) -> 10
+   * @param i {Number}
+   * @param v {Number}
+   * @return {Number}
+   */
+  roundTo : function roundTo (i, v) {
     return Math.round(i / v) * v;
   },
 
-  roundDownTo : function(i, v) {
+  /**
+   * roundDownTo(13, 10) -> 10
+   * roundDownTo(199, 100) -> 100
+   * roundDownTo(99, 100) -> 0
+   *
+   * @param i {Number} value to round down
+   * @param v {Number} round value down to closest even v
+   * @return {Number}
+   */
+  roundDownTo : function roundDownTo(i, v) {
     return Math.floor(i / v) * v;
   },
 
-  roundUpTo : function(i, v) {
+  /**
+   * roundUpTo(13, 10) -> 20
+   * roundUpTo(199, 100) -> 200
+   * roundUpTo(99, 100) -> 10
+   * roundUpTo(-14, 10) -> -10
+   *
+   * @param i {Number} Value to round
+   * @param v {Number} Round i up to closest even v
+   * @return 
+   */
+  roundUpTo : function roundUpTo(i, v) {
     return Math.ceil(i / v) * v;
   },
 
-  sign : function (num) {
+  /**
+   * @param num {Number}
+   * @return {Number} -1 if negative, 1 if positive, 0 otherwise
+   */
+  sign : function sign (num) {
     return num ? (num < 0) ? -1 : 1 : 0;
   }
 };

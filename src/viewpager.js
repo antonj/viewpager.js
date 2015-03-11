@@ -31,6 +31,35 @@ function ViewPager(elem, options) {
       /** Internal state */
       position = 0;
 
+  function deltaToPage(pageIndex) {
+    return(-position) - (pageIndex * elem_size);
+  }
+
+  /**
+   * @return targetPage {Number} Page to scroll to
+   */
+  function determineTargetPage(position, deltaPx, velocity) {
+    var pi = positionInfo(position),
+        direction = Utils.sign(deltaPx),
+        targetPage = pi.activePage + Math.round(pi.pageOffset);
+    // FLING
+    if (Math.abs(deltaPx) > MIN_DISTANCE_FOR_FLING_MS && 
+        Math.abs(velocity) > MIN_FLING_VELOCITY_PX_PER_MS) {
+      targetPage = velocity > 0 ? pi.activePage : pi.activePage + 1;
+    } else { // NO FLING, check position
+      var totalDelta = Math.abs(deltaPx / elem_size);
+      var pageDelta = totalDelta - Math.floor(totalDelta);
+      if (Math.abs(pageDelta) > TIPPING_POINT) {
+        targetPage = pi.activePage + Math.ceil(pageDelta) * -direction;
+        targetPage += (direction < 0) ? 0 : 1;
+      }
+    }
+    if (PAGES) {
+      targetPage = Utils.clamp(targetPage, 0, PAGES - 1);
+    }
+    return targetPage;
+  }
+  
   function positionInfo(position) { 
     var p = -position;
     var totalOffset = p / elem_size;
@@ -40,31 +69,6 @@ function ViewPager(elem, options) {
       activePage : activePage,
       pageOffset : (totalOffset - activePage)
     };
-  }
-
-  function deltaToPage(pageIndex) {
-    return(-position) - (pageIndex * elem_size);
-  }
-
-  /**
-   * @return targetPage {Number} Page to scroll to
-   */
-  function determineTargetPage(position, deltaPx, velocity) {
-    console.log('determineTargetPage', position, deltaPx, velocity);
-    var pi = positionInfo(position);
-    var targetPage;
-    if (Math.abs(deltaPx) > MIN_DISTANCE_FOR_FLING_MS && 
-        Math.abs(velocity) > MIN_FLING_VELOCITY_PX_PER_MS) {
-      targetPage = velocity > 0 ? pi.activePage : pi.activePage + 1;
-    } else {
-      // TODO fix tipping point other direction
-      targetPage = (pi.pageOffset > TIPPING_POINT) ?
-        pi.activePage + 1 : pi.activePage;
-    }
-    if (PAGES) {
-      targetPage = Utils.clamp(targetPage, 0, PAGES - 1);
-    }
-    return targetPage;
   }
 
   function handleOnScroll(position) {
@@ -85,7 +89,6 @@ function ViewPager(elem, options) {
 
     onDrag : function (p) {
       if (!active) return;
-      console.log(p);
       position += DIRECTION_HORIZONTAL ? p.dx : p.dy;
       scroller.forceFinished(true);
       handleOnScroll(position);

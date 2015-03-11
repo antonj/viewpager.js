@@ -506,7 +506,7 @@ function Scroller(interpolator, flywheel) {
      * @param duration Duration of the scroll in milliseconds.
      */
     startScroll : function startScroll(startX, startY, dx, dy, duration) {
-      if (duration == 0) {
+      if (duration === 0) {
         mFinished = true;
         mCurrX = startX + dx;
         mCurrY = startY + dy;

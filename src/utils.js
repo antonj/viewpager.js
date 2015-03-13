@@ -10,6 +10,13 @@ module.exports = {
   },
 
   /**
+   * lerp a value [0-1] to new range [start-stop]
+   */
+  lerp : function lerp (value, start, stop) {
+    return start + (stop-start) * value;
+  },
+
+  /**
    * map value in range [istart-istop] to range [ostart-ostop]
    * map(5, 0, 10, 0, 100) -> 50
    */

@@ -109,12 +109,18 @@ function ViewPager(elem, options) {
     onPageChange(-Math.round(position / elem_size));
   }
 
-  function animate() {
+  function animate(interpolator) {
     Raf.cancelAnimationFrame(animationId);
     animationId = Raf.requestAnimationFrame(update);
     function update () {
       var is_animating = scroller.computeScrollOffset();
-      position = scroller.getCurrX();
+      if (interpolator != undefined) {
+        position = Utils.lerp(interpolator(scroller.getProgress()),
+                              scroller.getStartX(), scroller.getFinalX());
+      } else {
+        position = scroller.getCurrX();
+      }
+      console.log('anim progress', scroller.getProgress());
 
       handleOnScroll(position);
 
@@ -132,19 +138,20 @@ function ViewPager(elem, options) {
      *
      * @param {Number|boolean} duration Animation duration 0 or false
      * for no animation.
+     * @param {function} interpolator a function that interpolates a number [0-1]
      */
-    next : function (duration) {
+    next : function (duration, interpolator) {
       var t = duration !== undefined ? Math.abs(duration) : ANIM_DURATION_MAX,
-          pi = positionInfo(position),
-          page = pi.activePage + ((pi.pageOffset > 0) ? 2 : 1);
+          page = (-scroller.getFinalX() / elem_size) + 1;
+      
       if (PAGES) {
         page = Utils.clamp(page, 0, PAGES - 1);
       }
-      
+
       scroller.startScroll(position, 0,
                            deltaToPage(page), 0,
                            t);
-      animate();
+      animate(interpolator);
     },
 
     /**
@@ -152,10 +159,11 @@ function ViewPager(elem, options) {
      *
      * @param {Number|boolean} duration Animation duration 0 or false
      * for no animation.
+     * @param {function} interpolator a function that interpolates a number [0-1]
      */
-    previous : function(duration) {
+    previous : function(duration, interpolator) {
       var t = duration !== undefined ? Math.abs(duration) : ANIM_DURATION_MAX,
-          page = positionInfo(position).activePage - 1;
+          page = (-scroller.getFinalX() / elem_size) - 1;
       
       if (PAGES) {
         page = Utils.clamp(page, 0, PAGES - 1);
@@ -163,24 +171,26 @@ function ViewPager(elem, options) {
       scroller.startScroll(position, 0,
                            deltaToPage(page), 0,
                            t);
-      animate();
+      animate(interpolator);
     },
 
     /**
      * @param {Number} page index of page
      * @param {Number|boolean} duration Animation duration 0 or false
      * for no animation.
+     * @param {function} interpolator a function that interpolates a number [0-1]
      */
-    goToIndex : function (page, duration) {
+    goToIndex : function (page, duration, interpolator) {
       var t = duration !== undefined ? Math.abs(duration) : ANIM_DURATION_MAX;
       if (PAGES) {
         page = Utils.clamp(page, 0, PAGES - 1);
       }
       var delta = deltaToPage(page);
+
       scroller.startScroll(position, 0,
                            delta, 0,
                            t);
-      animate();
+      animate(interpolator);
     }
   };
 }

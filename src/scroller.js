@@ -76,9 +76,9 @@ function Scroller(interpolator, flywheel) {
   /** private int */
   var mStartY;
   /** private int */
-  var mFinalX;
+  var mFinalX = 0;
   /** private int */
-  var mFinalY;
+  var mFinalY = 0;
 
   /** private int */
   var mMinX;
@@ -89,10 +89,13 @@ function Scroller(interpolator, flywheel) {
   /** private int */
   var mMaxY;
 
+  /** {Number} 0-1, Scroll mode */
+  var mProgress = 0;
+
   /** private int */
-  var mCurrX;
+  var mCurrX = 0;
   /** private int */
-  var mCurrY;
+  var mCurrY = 0;
   /** private long */
   var mStartTime;
   /** private int */
@@ -357,9 +360,18 @@ function Scroller(interpolator, flywheel) {
      * @return {Number} - integer. The new Y offset as an absolute
      * distance from the origin.
      */
-    // public final int getCurrY() {
     getCurrY : function getCurrY() {
       return mCurrY;
+    },
+
+    /**
+     * Returns the current progress 0-1 not interpolated. Only set for
+     * scrolls not flings.
+     *
+     * @return {Number} - 0 start of animation 1 end of animation.
+     */
+    getProgress : function getProgress() {
+      return mProgress;
     },
 
     /**
@@ -426,10 +438,11 @@ function Scroller(interpolator, flywheel) {
         switch (mMode) {
         case SCROLL_MODE:
           var x = timePassed * mDurationReciprocal;
+          mProgress = x;
           if (mInterpolator === undefined) {
             x = viscousFluid(x);
           } else {
-            x = mInterpolator.getInterpolation(x);
+            x = mInterpolator(x);
           }
 
           mCurrX = mStartX + Math.round(x * mDeltaX);
@@ -437,28 +450,20 @@ function Scroller(interpolator, flywheel) {
 
           // TODO fix decimal done checks, remove round
           if (Math.round(mCurrX) === Math.round(mFinalX) && Math.round(mCurrY) === Math.round(mFinalY)) {
+            mProgress = 1;
             mFinished = true;
           }
           break;
         case FLING_MODE:
-          // final float t = (float) timePassed / mDuration;
           var t = timePassed / mDuration;
-          // final int index = (int) (NB_SAMPLES * t);
           var index = Math.floor(NB_SAMPLES * t);
-          // float distanceCoef = 1.f;
           var distanceCoef = 1.0;
-          // float velocityCoef = 0.f;
           var velocityCoef = 0.0;
           if (index < NB_SAMPLES) {
-            // final float t_inf = (float) index / NB_SAMPLES;
             var t_inf = index / NB_SAMPLES;
-            // final float t_sup = (float) (index + 1) / NB_SAMPLES;
             var t_sup = (index + 1) / NB_SAMPLES;
-            // final float d_inf = SPLINE_POSITION[index];
             var d_inf = SPLINE_POSITION[index];
-            // final float d_sup = SPLINE_POSITION[index + 1];
             var d_sup = SPLINE_POSITION[index + 1];
-
             velocityCoef = (d_sup - d_inf) / (t_sup - t_inf);
             distanceCoef = d_inf + (t - t_inf) * velocityCoef;
           }
@@ -508,6 +513,7 @@ function Scroller(interpolator, flywheel) {
     startScroll : function startScroll(startX, startY, dx, dy, duration) {
       if (duration === 0) {
         mFinished = true;
+        mProgress = 1;
         mCurrX = startX + dx;
         mCurrY = startY + dy;
         return;
@@ -517,6 +523,7 @@ function Scroller(interpolator, flywheel) {
       mFinished = false;
       mDuration = duration === undefined ? DEFAULT_DURATION : duration;
       mStartTime = currentAnimationTimeMillis();
+      mProgress = 0;
       mStartX = startX;
       mStartY = startY;
       mFinalX = startX + dx;
@@ -670,6 +677,10 @@ function Scroller(interpolator, flywheel) {
       mFinalY = newY;
       mDeltaY = mFinalY - mStartY;
       mFinished = false;
+    },
+
+    setInterpolator : function setInterpolator(interpolator) {
+      mInterpolator = interpolator;
     },
 
     /**

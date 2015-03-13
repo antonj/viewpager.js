@@ -169,12 +169,18 @@ function ViewPager(elem, options) {
     onPageChange(-Math.round(position / elem_size));
   }
 
-  function animate() {
+  function animate(interpolator) {
     Raf.cancelAnimationFrame(animationId);
     animationId = Raf.requestAnimationFrame(update);
     function update () {
       var is_animating = scroller.computeScrollOffset();
-      position = scroller.getCurrX();
+      if (interpolator != undefined) {
+        position = Utils.lerp(interpolator(scroller.getProgress()),
+                              scroller.getStartX(), scroller.getFinalX());
+      } else {
+        position = scroller.getCurrX();
+      }
+      console.log('anim progress', scroller.getProgress());
 
       handleOnScroll(position);
 
@@ -192,19 +198,20 @@ function ViewPager(elem, options) {
      *
      * @param {Number|boolean} duration Animation duration 0 or false
      * for no animation.
+     * @param {function} interpolator a function that interpolates a number [0-1]
      */
-    next : function (duration) {
+    next : function (duration, interpolator) {
       var t = duration !== undefined ? Math.abs(duration) : ANIM_DURATION_MAX,
-          pi = positionInfo(position),
-          page = pi.activePage + ((pi.pageOffset > 0) ? 2 : 1);
+          page = (-scroller.getFinalX() / elem_size) + 1;
+      
       if (PAGES) {
         page = Utils.clamp(page, 0, PAGES - 1);
       }
-      
+
       scroller.startScroll(position, 0,
                            deltaToPage(page), 0,
                            t);
-      animate();
+      animate(interpolator);
     },
 
     /**
@@ -212,10 +219,11 @@ function ViewPager(elem, options) {
      *
      * @param {Number|boolean} duration Animation duration 0 or false
      * for no animation.
+     * @param {function} interpolator a function that interpolates a number [0-1]
      */
-    previous : function(duration) {
+    previous : function(duration, interpolator) {
       var t = duration !== undefined ? Math.abs(duration) : ANIM_DURATION_MAX,
-          page = positionInfo(position).activePage - 1;
+          page = (-scroller.getFinalX() / elem_size) - 1;
       
       if (PAGES) {
         page = Utils.clamp(page, 0, PAGES - 1);
@@ -223,24 +231,26 @@ function ViewPager(elem, options) {
       scroller.startScroll(position, 0,
                            deltaToPage(page), 0,
                            t);
-      animate();
+      animate(interpolator);
     },
 
     /**
      * @param {Number} page index of page
      * @param {Number|boolean} duration Animation duration 0 or false
      * for no animation.
+     * @param {function} interpolator a function that interpolates a number [0-1]
      */
-    goToIndex : function (page, duration) {
+    goToIndex : function (page, duration, interpolator) {
       var t = duration !== undefined ? Math.abs(duration) : ANIM_DURATION_MAX;
       if (PAGES) {
         page = Utils.clamp(page, 0, PAGES - 1);
       }
       var delta = deltaToPage(page);
+
       scroller.startScroll(position, 0,
                            delta, 0,
                            t);
-      animate();
+      animate(interpolator);
     }
   };
 }
@@ -522,9 +532,9 @@ function Scroller(interpolator, flywheel) {
   /** private int */
   var mStartY;
   /** private int */
-  var mFinalX;
+  var mFinalX = 0;
   /** private int */
-  var mFinalY;
+  var mFinalY = 0;
 
   /** private int */
   var mMinX;
@@ -535,10 +545,13 @@ function Scroller(interpolator, flywheel) {
   /** private int */
   var mMaxY;
 
+  /** {Number} 0-1, Scroll mode */
+  var mProgress = 0;
+
   /** private int */
-  var mCurrX;
+  var mCurrX = 0;
   /** private int */
-  var mCurrY;
+  var mCurrY = 0;
   /** private long */
   var mStartTime;
   /** private int */
@@ -803,9 +816,18 @@ function Scroller(interpolator, flywheel) {
      * @return {Number} - integer. The new Y offset as an absolute
      * distance from the origin.
      */
-    // public final int getCurrY() {
     getCurrY : function getCurrY() {
       return mCurrY;
+    },
+
+    /**
+     * Returns the current progress 0-1 not interpolated. Only set for
+     * scrolls not flings.
+     *
+     * @return {Number} - 0 start of animation 1 end of animation.
+     */
+    getProgress : function getProgress() {
+      return mProgress;
     },
 
     /**
@@ -872,10 +894,11 @@ function Scroller(interpolator, flywheel) {
         switch (mMode) {
         case SCROLL_MODE:
           var x = timePassed * mDurationReciprocal;
+          mProgress = x;
           if (mInterpolator === undefined) {
             x = viscousFluid(x);
           } else {
-            x = mInterpolator.getInterpolation(x);
+            x = mInterpolator(x);
           }
 
           mCurrX = mStartX + Math.round(x * mDeltaX);
@@ -883,28 +906,20 @@ function Scroller(interpolator, flywheel) {
 
           // TODO fix decimal done checks, remove round
           if (Math.round(mCurrX) === Math.round(mFinalX) && Math.round(mCurrY) === Math.round(mFinalY)) {
+            mProgress = 1;
             mFinished = true;
           }
           break;
         case FLING_MODE:
-          // final float t = (float) timePassed / mDuration;
           var t = timePassed / mDuration;
-          // final int index = (int) (NB_SAMPLES * t);
           var index = Math.floor(NB_SAMPLES * t);
-          // float distanceCoef = 1.f;
           var distanceCoef = 1.0;
-          // float velocityCoef = 0.f;
           var velocityCoef = 0.0;
           if (index < NB_SAMPLES) {
-            // final float t_inf = (float) index / NB_SAMPLES;
             var t_inf = index / NB_SAMPLES;
-            // final float t_sup = (float) (index + 1) / NB_SAMPLES;
             var t_sup = (index + 1) / NB_SAMPLES;
-            // final float d_inf = SPLINE_POSITION[index];
             var d_inf = SPLINE_POSITION[index];
-            // final float d_sup = SPLINE_POSITION[index + 1];
             var d_sup = SPLINE_POSITION[index + 1];
-
             velocityCoef = (d_sup - d_inf) / (t_sup - t_inf);
             distanceCoef = d_inf + (t - t_inf) * velocityCoef;
           }
@@ -954,6 +969,7 @@ function Scroller(interpolator, flywheel) {
     startScroll : function startScroll(startX, startY, dx, dy, duration) {
       if (duration === 0) {
         mFinished = true;
+        mProgress = 1;
         mCurrX = startX + dx;
         mCurrY = startY + dy;
         return;
@@ -963,6 +979,7 @@ function Scroller(interpolator, flywheel) {
       mFinished = false;
       mDuration = duration === undefined ? DEFAULT_DURATION : duration;
       mStartTime = currentAnimationTimeMillis();
+      mProgress = 0;
       mStartX = startX;
       mStartY = startY;
       mFinalX = startX + dx;
@@ -1118,6 +1135,10 @@ function Scroller(interpolator, flywheel) {
       mFinished = false;
     },
 
+    setInterpolator : function setInterpolator(interpolator) {
+      mInterpolator = interpolator;
+    },
+
     /**
      * @hide
      */
@@ -1140,6 +1161,13 @@ module.exports = {
    */
   clamp : function clamp (val, min, max) {
     return Math.min(Math.max(val, min), max);
+  },
+
+  /**
+   * lerp a value [0-1] to new range [start-stop]
+   */
+  lerp : function lerp (value, start, stop) {
+    return start + (stop-start) * value;
   },
 
   /**

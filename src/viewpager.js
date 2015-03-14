@@ -91,7 +91,12 @@ function ViewPager(elem, options) {
 
     onDrag : function (p) {
       if (!active) return;
-      position += DIRECTION_HORIZONTAL ? p.dx : p.dy;
+      var change = DIRECTION_HORIZONTAL ? p.dx : p.dy;
+      var tmpPos = -(change + position);
+      if (PAGES && (tmpPos < 0 || tmpPos > ((PAGES-1) * elem_size))) {
+        change = change / 3;
+      }
+      position += change;
       scroller.forceFinished(true);
       handleOnScroll(position);
     },

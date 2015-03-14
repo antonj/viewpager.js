@@ -79,9 +79,9 @@ function ViewPager(elem, options) {
 
   var gd = new GestureDetector(elem, {
     onFirstDrag : function (p) {
-      // prevent default scroll if we move in paging direction
-      active =  DIRECTION_HORIZONTAL ? Math.abs(p.dx) > Math.abs(p.dy) : Math.abs(p.dx) < Math.abs(p.dy);
-      if (active || PREVENT_ALL_NATIVE_SCROLLING) {
+      // prevent default scroll if we move in paging direction      
+      active =  PREVENT_ALL_NATIVE_SCROLLING || DIRECTION_HORIZONTAL ? Math.abs(p.dx) > Math.abs(p.dy) : Math.abs(p.dx) < Math.abs(p.dy);
+      if (active) {
         p.event.preventDefault();
       }
     },

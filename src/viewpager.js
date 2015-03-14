@@ -71,10 +71,11 @@ function ViewPager(elem, options) {
   }
 
   function handleOnScroll(position) {
-    var totalOffset = position / elem_size;
-    var activePage = Math.max(0, Math.floor(totalOffset));
-    var pageOffset = totalOffset - activePage;
-    onPageScroll(totalOffset, activePage, pageOffset);
+    var totalOffset = position / elem_size,
+        activePage = Math.max(0, Math.floor(totalOffset)),
+        pageOffset = totalOffset - activePage,
+        animOffset = scroller.getProgress();
+    onPageScroll(totalOffset, activePage, pageOffset, animOffset);
   }
 
   var gd = new GestureDetector(elem, {

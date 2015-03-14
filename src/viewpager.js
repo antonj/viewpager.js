@@ -14,6 +14,8 @@ function ViewPager(elem, options) {
       PREVENT_ALL_NATIVE_SCROLLING = options.prevent_all_native_scrolling !== undefined ? options.prevent_all_native_scrolling : false,
       DIRECTION_HORIZONTAL = !options.vertical,
       TIPPING_POINT = options.tipping_point !== undefined ? options.tipping_point : 0.5,
+      /** Default interpolator, undefined is ok */
+      INTERPOLATOR = options.interpolator,
 
       MIN_DISTANCE_FOR_FLING_MS = 25, // px
       MIN_FLING_VELOCITY_PX_PER_MS = 0.4, // px / ms
@@ -102,7 +104,7 @@ function ViewPager(elem, options) {
       scroller.startScroll(position, 0,
                            deltaOffset, 0,
                            ANIM_DURATION_MAX);
-      animate();
+      animate(INTERPOLATOR);
     }
   });
 

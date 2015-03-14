@@ -74,6 +74,8 @@ function ViewPager(elem, options) {
       PREVENT_ALL_NATIVE_SCROLLING = options.prevent_all_native_scrolling !== undefined ? options.prevent_all_native_scrolling : false,
       DIRECTION_HORIZONTAL = !options.vertical,
       TIPPING_POINT = options.tipping_point !== undefined ? options.tipping_point : 0.5,
+      /** Default interpolator, undefined is ok */
+      INTERPOLATOR = options.interpolator,
 
       MIN_DISTANCE_FOR_FLING_MS = 25, // px
       MIN_FLING_VELOCITY_PX_PER_MS = 0.4, // px / ms
@@ -131,17 +133,18 @@ function ViewPager(elem, options) {
   }
 
   function handleOnScroll(position) {
-    var totalOffset = position / elem_size;
-    var activePage = Math.max(0, Math.floor(totalOffset));
-    var pageOffset = totalOffset - activePage;
-    onPageScroll(totalOffset, activePage, pageOffset);
+    var totalOffset = position / elem_size,
+        activePage = Math.max(0, Math.floor(totalOffset)),
+        pageOffset = totalOffset - activePage,
+        animOffset = scroller.getProgress();
+    onPageScroll(totalOffset, activePage, pageOffset, animOffset);
   }
 
   var gd = new GestureDetector(elem, {
     onFirstDrag : function (p) {
-      // prevent default scroll if we move in paging direction
-      active =  DIRECTION_HORIZONTAL ? Math.abs(p.dx) > Math.abs(p.dy) : Math.abs(p.dx) < Math.abs(p.dy);
-      if (active || PREVENT_ALL_NATIVE_SCROLLING) {
+      // prevent default scroll if we move in paging direction      
+      active =  PREVENT_ALL_NATIVE_SCROLLING || DIRECTION_HORIZONTAL ? Math.abs(p.dx) > Math.abs(p.dy) : Math.abs(p.dx) < Math.abs(p.dy);
+      if (active) {
         p.event.preventDefault();
       }
     },
@@ -161,7 +164,7 @@ function ViewPager(elem, options) {
       scroller.startScroll(position, 0,
                            deltaOffset, 0,
                            ANIM_DURATION_MAX);
-      animate();
+      animate(INTERPOLATOR);
     }
   });
 
@@ -180,7 +183,6 @@ function ViewPager(elem, options) {
       } else {
         position = scroller.getCurrX();
       }
-      console.log('anim progress', scroller.getProgress());
 
       handleOnScroll(position);
 

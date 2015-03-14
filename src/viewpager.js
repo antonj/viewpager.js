@@ -120,7 +120,6 @@ function ViewPager(elem, options) {
       } else {
         position = scroller.getCurrX();
       }
-      console.log('anim progress', scroller.getProgress());
 
       handleOnScroll(position);
 

@@ -103,12 +103,12 @@ function ViewPager(elem, options) {
       var ratio = position === 0 ? 0 : position / elem_size;
       position = ratio * updatedSize;
       // position = 0;
-      console.log('pos', position);
+      console.log('pos', position, 'newsize', updatedSize);
+      elem_size = updatedSize;
       handleOnScroll(position);
-      // elem_size = DIRECTION_HORIZONTAL ? elem.offsetWidth : elem.offsetHeight;
-      // console.log(elem_size, elem);
+    } else {
+      elem_size = updatedSize;
     }
-    elem_size = updatedSize;
     return elem_size;
   }
 
@@ -615,7 +615,7 @@ function Scroller(interpolator, flywheel) {
   var mDistance;
 
   /** private float */
-  var mFlingFriction = 0.015; //ViewConfiguration.getScrollFriction();
+  var mFlingFriction = 0.015;
 
   /** private static final int */
   var DEFAULT_DURATION = 250;

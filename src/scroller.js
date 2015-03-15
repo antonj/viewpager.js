@@ -121,7 +121,7 @@ function Scroller(interpolator, flywheel) {
   var mDistance;
 
   /** private float */
-  var mFlingFriction = 0.015; //ViewConfiguration.getScrollFriction();
+  var mFlingFriction = 0.015;
 
   /** private static final int */
   var DEFAULT_DURATION = 250;

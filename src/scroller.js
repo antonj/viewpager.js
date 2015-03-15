@@ -90,7 +90,7 @@ function Scroller(interpolator, flywheel) {
   var mMaxY;
 
   /** {Number} 0-1, Scroll mode */
-  var mProgress = 0;
+  var mProgress = 1;
 
   /** private int */
   var mCurrX = 0;

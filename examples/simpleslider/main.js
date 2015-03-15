@@ -17,9 +17,9 @@ var offset = 0;
 var vp = new ViewPager(view_pager_elem, {
   pages: item_container.children.length,
   vertical: false,
-  onPageScroll : function (totalOffset, page, pageOffset, animOffset) {
-    console.log('onPageScroll', totalOffset, page, pageOffset, animOffset);
-    offset = -totalOffset;
+  onPageScroll : function (scrollInfo) {
+    console.log('onPageScroll', scrollInfo);
+    offset = -scrollInfo.totalOffset;
     invalidateScroll();
   },
 

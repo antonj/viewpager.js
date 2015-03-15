@@ -8,9 +8,9 @@ var h = view_pager_elem.offsetHeight;
 var vp = new ViewPager(view_pager_elem, {
   pages: item_container.children.length,
   vertical: true,
-  onPageScroll : function (totalOffset, activePage, pageOffset) {
-    console.log(totalOffset, activePage);
-    item_container.style['-webkit-transform'] = 'translate3d(0px, ' + (totalOffset * h) + 'px, 0px)';
+  onPageScroll : function (scrollInfo) {
+    console.log(scrollInfo);
+    item_container.style['-webkit-transform'] = 'translate3d(0px, ' + (-scrollInfo.totalOffset * h) + 'px, 0px)';
 
   },
 
@@ -22,10 +22,3 @@ var vp = new ViewPager(view_pager_elem, {
     w = width;
   }
 });
-
-// document.getElementById('prev').addEventListener('click', function () {
-//   vp.previous();
-// });
-// document.getElementById('next').addEventListener('click', function () {
-//   vp.next();
-// });

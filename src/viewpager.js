@@ -22,9 +22,7 @@ function ViewPager(elem, options) {
       MIN_FLING_VELOCITY_PX_PER_MS = 0.4, // px / ms
 
       elem_size,
-      elem_size_on_change = function () {
-        invalidateElemSize();
-      },
+      elem_size_on_change = function () { invalidateElemSize(); },
       noop = function () {},
       onPageScroll = options.onPageScroll || noop,
       onPageChange = options.onPageChange || noop,
@@ -38,12 +36,11 @@ function ViewPager(elem, options) {
   
   function invalidateElemSize() {
     var rect = elem.getBoundingClientRect();
-    var updatedSize = Math.round(DIRECTION_HORIZONTAL ?  rect.width : rect.height);
+    var updatedSize = DIRECTION_HORIZONTAL ?  rect.width : rect.height;
     if (elem_size) {
       var ratio = position === 0 ? 0 : position / elem_size;
       position = ratio * updatedSize;
       elem_size = updatedSize;
-      handleOnScroll(position);
     } else {
       elem_size = updatedSize;
     }
@@ -59,17 +56,19 @@ function ViewPager(elem, options) {
    */
   function determineTargetPage(position, deltaPx, velocity) {
     var pi = positionInfo(position),
+        page = pi.page,
+        pageOffset = pi.pageOffset,
         direction = Utils.sign(deltaPx),
-        targetPage = pi.activePage + Math.round(pi.pageOffset);
+        targetPage = page + Math.round(pageOffset);
     // FLING
     if (Math.abs(deltaPx) > MIN_DISTANCE_FOR_FLING_MS && 
         Math.abs(velocity) > MIN_FLING_VELOCITY_PX_PER_MS) {
-      targetPage = velocity > 0 ? pi.activePage : pi.activePage + 1;
+      targetPage = velocity > 0 ? page : page + 1;
     } else { // NO FLING, check position
       var totalDelta = Math.abs(deltaPx / elem_size),
           pageDelta = totalDelta - Math.floor(totalDelta);
       if (Math.abs(pageDelta) > TIPPING_POINT) {
-        targetPage = pi.activePage + Math.ceil(pageDelta) * -direction;
+        targetPage = page + Math.ceil(pageDelta) * -direction;
         targetPage += (direction < 0) ? 0 : 1;
       }
     }
@@ -80,22 +79,18 @@ function ViewPager(elem, options) {
   }
   
   function positionInfo(position) { 
-    var p = -position,
-        totalOffset = p / elem_size,
-        activePage = Math.floor(totalOffset);
-    return {
-      totalOffset : totalOffset,
-      activePage : activePage,
-      pageOffset : (totalOffset - activePage)
-    };
-  }
-
-  function handleOnScroll(position) {
     var totalOffset = -position / elem_size,
-        activePage = Math.floor(totalOffset),
-        pageOffset = totalOffset - activePage,
-        animOffset = scroller.getProgress();
-    onPageScroll(totalOffset, activePage, pageOffset, animOffset);
+        page = Math.floor(totalOffset),
+        pageOffset = totalOffset - page;
+    return({ page: page,
+             pageOffset: pageOffset,
+             totalOffset: totalOffset });
+  }
+  
+  function handleOnScroll(position) {
+    var scrollInfo = positionInfo(position);
+    scrollInfo.animOffset = scroller.getProgress();
+    onPageScroll(scrollInfo);
   }
 
   function handleAnimEnd() {

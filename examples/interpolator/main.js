@@ -44,7 +44,7 @@ var vp = new ViewPager(view_pager_elem, {
   interpolator : interpolators.overshoot, // default interpolator
   vertical: false,
   onPageScroll : function (totalOffset, page, pageOffset, animoffset) {
-    console.log('anim offset', animoffset);
+    // console.log('anim offset', animoffset);
     item_container.style['-webkit-transform'] = 'translate3d(' + (totalOffset * w) + 'px, 0px, 0px)';
   },
 

@@ -102,8 +102,6 @@ function ViewPager(elem, options) {
     if (elem_size) {
       var ratio = position === 0 ? 0 : position / elem_size;
       position = ratio * updatedSize;
-      // position = 0;
-      console.log('pos', position, 'newsize', updatedSize);
       elem_size = updatedSize;
       handleOnScroll(position);
     } else {
@@ -153,11 +151,10 @@ function ViewPager(elem, options) {
   }
 
   function handleOnScroll(position) {
-    var totalOffset = position / elem_size,
-        activePage = Math.max(0, Math.floor(totalOffset)),
+    var totalOffset = -position / elem_size,
+        activePage = Math.floor(totalOffset),
         pageOffset = totalOffset - activePage,
         animOffset = scroller.getProgress();
-    console.log('handleScroll', totalOffset, activePage, pageOffset, animOffset);
     onPageScroll(totalOffset, activePage, pageOffset, animOffset);
   }
 
@@ -166,8 +163,6 @@ function ViewPager(elem, options) {
   }
 
   function animate(interpolator) {
-    Raf.cancelAnimationFrame(animationId);
-    animationId = Raf.requestAnimationFrame(update);
     function update () {
       var is_animating = scroller.computeScrollOffset();
       if (interpolator !== undefined) {
@@ -185,6 +180,8 @@ function ViewPager(elem, options) {
         handleAnimEnd();
       }
     }
+    Raf.cancelAnimationFrame(animationId);
+    animationId = Raf.requestAnimationFrame(update);
   }
   
   var gestureDetector = new GestureDetector(elem, {
@@ -197,7 +194,6 @@ function ViewPager(elem, options) {
     },
     onDrag : function (p) {
       if (!active) return;
-      console.log('position drag', position, elem_size);
       var change = DIRECTION_HORIZONTAL ? p.dx : p.dy;
       var tmpPos = -(change + position);
       if (PAGES && (tmpPos < 0 || tmpPos > ((PAGES-1) * elem_size))) {
@@ -238,10 +234,8 @@ function ViewPager(elem, options) {
      * @param {function} interpolator a function that interpolates a number [0-1]
      */
     next : function (duration, interpolator) {
-      console.log('next', elem_size);
       var t = duration !== undefined ? Math.abs(duration) : ANIM_DURATION_MAX,
           page = -((scroller.isFinished() ? position : (scroller.getFinalX())) / elem_size) + 1;
-      console.log('page', page);
       if (PAGES) {
         page = Utils.clamp(page, 0, PAGES - 1);
       }

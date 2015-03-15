@@ -12,12 +12,15 @@ for (var i = 0; i < items; i++) {
   item_container.children[i].innerHTML = "" + i + "";
 }
 
+var offset = 0;
+
 var vp = new ViewPager(view_pager_elem, {
   pages: item_container.children.length,
   vertical: false,
-  onPageScroll : function (totalOffset, page, pageOffset) {
-    console.log(totalOffset, page, pageOffset, w);
-    item_container.style['-webkit-transform'] = 'translate3d(' + (totalOffset * w) + 'px, 0px, 0px)';
+  onPageScroll : function (totalOffset, page, pageOffset, animOffset) {
+    console.log('onPageScroll', totalOffset, page, pageOffset, animOffset);
+    offset = -totalOffset;
+    invalidateScroll();
   },
 
   onPageChange : function (page) {
@@ -25,8 +28,13 @@ var vp = new ViewPager(view_pager_elem, {
   }
 });
 
+function invalidateScroll() {
+  item_container.style['-webkit-transform'] = 'translate3d(' + (offset * w) + 'px, 0px, 0px)';
+}
+
 window.addEventListener('resize', function () {
   w = view_pager_elem.getBoundingClientRect().width;
+  invalidateScroll();
 });
 
 document.getElementById('btn-prev').addEventListener('click', function () {

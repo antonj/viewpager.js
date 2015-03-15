@@ -450,6 +450,8 @@ function Scroller(interpolator, flywheel) {
 
           // TODO fix decimal done checks, remove round
           if (Math.round(mCurrX) === Math.round(mFinalX) && Math.round(mCurrY) === Math.round(mFinalY)) {
+            mCurrX = mFinalX;
+            mCurrY = mFinalY;
             mProgress = 1;
             mFinished = true;
           }
@@ -482,6 +484,9 @@ function Scroller(interpolator, flywheel) {
 
           // TODO fix decimal done checks, remove round
           if (Math.round(mCurrX) === Math.round(mFinalX) && Math.round(mCurrY) === Math.round(mFinalY)) {
+            mCurrX = mFinalX;
+            mCurrY = mFinalY;
+            mProgress = 1;
             mFinished = true;
           }
 

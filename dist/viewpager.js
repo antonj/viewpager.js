@@ -58,11 +58,12 @@ module.exports = {
 };
 
 },{}],3:[function(_dereq_,module,exports){
-/*global require, module */
+/*global require, module, window */
 'use strict';
 
 var Utils = _dereq_('./utils'),
     Raf = _dereq_('./raf'),
+    Events = _dereq_('./events'),
     console = _dereq_('./console'),
     Scroller = _dereq_('./scroller'),
     GestureDetector = _dereq_('./gesture_detector');
@@ -80,7 +81,10 @@ function ViewPager(elem, options) {
       MIN_DISTANCE_FOR_FLING_MS = 25, // px
       MIN_FLING_VELOCITY_PX_PER_MS = 0.4, // px / ms
 
-      elem_size = DIRECTION_HORIZONTAL ? elem.offsetWidth : elem.offsetHeight,
+      elem_size,
+      elem_size_on_change = function () {
+        invalidateElemSize();
+      },
       noop = function () {},
       onPageScroll = options.onPageScroll || noop,
       onPageChange = options.onPageChange || noop,
@@ -91,6 +95,22 @@ function ViewPager(elem, options) {
       scroller = new Scroller(),
 
       position = 0;
+  
+  function invalidateElemSize() {
+    var rect = elem.getBoundingClientRect();
+    var updatedSize = Math.round(DIRECTION_HORIZONTAL ?  rect.width : rect.height);
+    if (elem_size) {
+      var ratio = position === 0 ? 0 : position / elem_size;
+      position = ratio * updatedSize;
+      // position = 0;
+      console.log('pos', position);
+      handleOnScroll(position);
+      // elem_size = DIRECTION_HORIZONTAL ? elem.offsetWidth : elem.offsetHeight;
+      // console.log(elem_size, elem);
+    }
+    elem_size = updatedSize;
+    return elem_size;
+  }
 
   function deltaToPage(pageIndex) {
     return (-position) - (pageIndex * elem_size);
@@ -137,10 +157,37 @@ function ViewPager(elem, options) {
         activePage = Math.max(0, Math.floor(totalOffset)),
         pageOffset = totalOffset - activePage,
         animOffset = scroller.getProgress();
+    console.log('handleScroll', totalOffset, activePage, pageOffset, animOffset);
     onPageScroll(totalOffset, activePage, pageOffset, animOffset);
   }
 
-  var gd = new GestureDetector(elem, {
+  function handleAnimEnd() {
+    onPageChange(-Math.round(position / elem_size));
+  }
+
+  function animate(interpolator) {
+    Raf.cancelAnimationFrame(animationId);
+    animationId = Raf.requestAnimationFrame(update);
+    function update () {
+      var is_animating = scroller.computeScrollOffset();
+      if (interpolator !== undefined) {
+        position = Utils.lerp(interpolator(scroller.getProgress()),
+                              scroller.getStartX(), scroller.getFinalX());
+      } else {
+        position = scroller.getCurrX();
+      }
+
+      handleOnScroll(position);
+
+      if (is_animating) {
+        animationId = Raf.requestAnimationFrame(update);
+      } else {
+        handleAnimEnd();
+      }
+    }
+  }
+  
+  var gestureDetector = new GestureDetector(elem, {
     onFirstDrag : function (p) {
       // prevent default scroll if we move in paging direction      
       active =  PREVENT_ALL_NATIVE_SCROLLING || (DIRECTION_HORIZONTAL ? Math.abs(p.dx) > Math.abs(p.dy) : Math.abs(p.dx) < Math.abs(p.dy));
@@ -148,9 +195,9 @@ function ViewPager(elem, options) {
         p.event.preventDefault();
       }
     },
-
     onDrag : function (p) {
       if (!active) return;
+      console.log('position drag', position, elem_size);
       var change = DIRECTION_HORIZONTAL ? p.dx : p.dy;
       var tmpPos = -(change + position);
       if (PAGES && (tmpPos < 0 || tmpPos > ((PAGES-1) * elem_size))) {
@@ -173,33 +220,16 @@ function ViewPager(elem, options) {
     }
   });
 
-  function handleAnimEnd() {
-    onPageChange(-Math.round(position / elem_size));
-  }
-
-  function animate(interpolator) {
-    Raf.cancelAnimationFrame(animationId);
-    animationId = Raf.requestAnimationFrame(update);
-    function update () {
-      var is_animating = scroller.computeScrollOffset();
-      if (interpolator != undefined) {
-        position = Utils.lerp(interpolator(scroller.getProgress()),
-                              scroller.getStartX(), scroller.getFinalX());
-      } else {
-        position = scroller.getCurrX();
-      }
-
-      handleOnScroll(position);
-
-      if (is_animating) {
-        animationId = Raf.requestAnimationFrame(update);
-      } else {
-        handleAnimEnd();
-      }
-    }
-  }
-
+  invalidateElemSize();
+  Events.add(window, 'resize', elem_size_on_change);
+  
   return {
+    /** Remove listeners */
+    destroy : function () {
+      gestureDetector.destroy();
+      Events.remove(window, 'resize', elem_size_on_change);
+    },
+
     /**
      * Go to next page.
      *
@@ -208,9 +238,10 @@ function ViewPager(elem, options) {
      * @param {function} interpolator a function that interpolates a number [0-1]
      */
     next : function (duration, interpolator) {
+      console.log('next', elem_size);
       var t = duration !== undefined ? Math.abs(duration) : ANIM_DURATION_MAX,
-          page = (-scroller.getFinalX() / elem_size) + 1;
-      
+          page = -((scroller.isFinished() ? position : (scroller.getFinalX())) / elem_size) + 1;
+      console.log('page', page);
       if (PAGES) {
         page = Utils.clamp(page, 0, PAGES - 1);
       }
@@ -230,7 +261,7 @@ function ViewPager(elem, options) {
      */
     previous : function(duration, interpolator) {
       var t = duration !== undefined ? Math.abs(duration) : ANIM_DURATION_MAX,
-          page = (-scroller.getFinalX() / elem_size) - 1;
+          page = -((scroller.isFinished() ? position : (scroller.getFinalX())) / elem_size) - 1;
       
       if (PAGES) {
         page = Utils.clamp(page, 0, PAGES - 1);
@@ -264,7 +295,7 @@ function ViewPager(elem, options) {
 
 module.exports = ViewPager;
 
-},{"./console":1,"./gesture_detector":4,"./raf":5,"./scroller":6,"./utils":7}],4:[function(_dereq_,module,exports){
+},{"./console":1,"./events":2,"./gesture_detector":4,"./raf":5,"./scroller":6,"./utils":7}],4:[function(_dereq_,module,exports){
 /*global console, window, require, module */
 'use strict';
 
@@ -406,7 +437,7 @@ function GestureDetector(elem, options) {
   Events.add(container, ev_end_name, eventHandler);
 
   return {
-    stop : function () {
+    destroy : function () {
       Events.remove(elem, ev_start_name, eventHandler);
       Events.remove(container, ev_move_name, eventHandler);
       Events.remove(container, ev_end_name, eventHandler);
@@ -913,6 +944,8 @@ function Scroller(interpolator, flywheel) {
 
           // TODO fix decimal done checks, remove round
           if (Math.round(mCurrX) === Math.round(mFinalX) && Math.round(mCurrY) === Math.round(mFinalY)) {
+            mCurrX = mFinalX;
+            mCurrY = mFinalY;
             mProgress = 1;
             mFinished = true;
           }
@@ -945,6 +978,9 @@ function Scroller(interpolator, flywheel) {
 
           // TODO fix decimal done checks, remove round
           if (Math.round(mCurrX) === Math.round(mFinalX) && Math.round(mCurrY) === Math.round(mFinalY)) {
+            mCurrX = mFinalX;
+            mCurrY = mFinalY;
+            mProgress = 1;
             mFinished = true;
           }
 

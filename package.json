@@ -1,10 +1,19 @@
 {
   "name": "viewpager.com",
-  "version": "0.1.0",
+  "version": "0.4.0",
   "repository": {
     "type": "git",
     "url": "http://github.com/antonj/viewpager.js.git"
   },
+  "main": "dist/viewpager.js",
+  "keywords": [
+    "browser",
+    "library",
+    "scroller",
+    "slider",
+    "pager",
+    "slideshow"
+  ],
   "devDependencies": {
     "browser-sync": "^2.2.2",
     "gulp": "^3.8.10",

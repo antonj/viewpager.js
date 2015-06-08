@@ -81,7 +81,7 @@ function ViewPager(elem, options) {
       MIN_DISTANCE_FOR_FLING_MS = 25, // px
       MIN_FLING_VELOCITY_PX_PER_MS = 0.4, // px / ms
 
-      elem_size,
+      elem_size = options.dragSize || undefined,
       elem_size_on_change = function () { invalidateElemSize(); },
       noop = function () {},
       onPageScroll = options.onPageScroll || noop,
@@ -211,8 +211,10 @@ function ViewPager(elem, options) {
     }
   });
 
-  invalidateElemSize();
-  Events.add(window, 'resize', elem_size_on_change);
+  if (!elem_size) {
+    invalidateElemSize();
+    Events.add(window, 'resize', elem_size_on_change);
+  }
   
   return {
     /** Remove listeners */

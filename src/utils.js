@@ -5,22 +5,22 @@ module.exports = {
   /**
    * Clamp val between min and max
    */
-  clamp : function clamp (val, min, max) {
+  clamp: function clamp(val, min, max) {
     return Math.min(Math.max(val, min), max);
   },
 
   /**
-   * lerp a value [0-1] to new range [start-stop]
+   * lerp a value [0-1] to new range [start-stop]
    */
-  lerp : function lerp (value, start, stop) {
-    return start + (stop-start) * value;
+  lerp: function lerp(value, start, stop) {
+    return start + (stop - start) * value;
   },
 
   /**
    * map value in range [istart-istop] to range [ostart-ostop]
    * map(5, 0, 10, 0, 100) -> 50
    */
-  map : function map (value, istart, istop, ostart, ostop) {
+  map: function map(value, istart, istop, ostart, ostop) {
     return ostart + (ostop - ostart) * ((value - istart) / (istop - istart));
   },
 
@@ -28,7 +28,7 @@ module.exports = {
    * map value in range [istart-istop] to range [ostart-ostop], clamp values between [ostart-ostop]
    * map(11, 0, 10, 0, 100) -> 100
    */
-  mapClamp : function mapClamp (value, istart, istop, ostart, ostop) {
+  mapClamp: function mapClamp(value, istart, istop, ostart, ostop) {
     return this.clamp(this.map(value, istart, istop, ostart, ostop),
                       ostart < ostop ? ostart : ostop, ostart < ostop ? ostop : ostart);
   },
@@ -41,7 +41,7 @@ module.exports = {
    * @param v {Number}
    * @return {Number}
    */
-  roundTo : function roundTo (i, v) {
+  roundTo: function roundTo(i, v) {
     return Math.round(i / v) * v;
   },
 
@@ -54,7 +54,7 @@ module.exports = {
    * @param v {Number} round value down to closest even v
    * @return {Number}
    */
-  roundDownTo : function roundDownTo(i, v) {
+  roundDownTo: function roundDownTo(i, v) {
     return Math.floor(i / v) * v;
   },
 
@@ -66,9 +66,9 @@ module.exports = {
    *
    * @param i {Number} Value to round
    * @param v {Number} Round i up to closest even v
-   * @return 
+   * @return
    */
-  roundUpTo : function roundUpTo(i, v) {
+  roundUpTo: function roundUpTo(i, v) {
     return Math.ceil(i / v) * v;
   },
 
@@ -76,7 +76,7 @@ module.exports = {
    * @param num {Number}
    * @return {Number} -1 if negative, 1 if positive, 0 otherwise
    */
-  sign : function sign (num) {
+  sign: function sign (num) {
     return num ? (num < 0) ? -1 : 1 : 0;
   }
 };

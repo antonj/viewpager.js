@@ -20,60 +20,61 @@
  *                            canceling default browser behaviour.
  */
 function GestureDetector(elem, options) {
-  var has_touch = 'ontouchstart' in window,
-      ev_start_name = has_touch ? 'touchstart' : 'mousedown',
-      ev_move_name = has_touch ? 'touchmove' : 'mousemove',
-      ev_end_name = has_touch ? ['touchend', 'touchcancel'] : ['mouseup', 'mousecancel'],
-      
-      Events = require('./events'),
-      vtracker = new (require('./velocity_tracker'))(),
-      container = window,
-      self = this,
+  var Events = require('./events'),
+      VelocityTracker = require('./velocity_tracker');
 
-      m_down_point,
-      m_prev_point,
-      
-      is_dragging = false,
-      is_first_drag = false,
-      
+  var hasTouch = 'ontouchstart' in window,
+      evStartName = hasTouch ? 'touchstart' : 'mousedown',
+      evMoveName = hasTouch ? 'touchmove' : 'mousemove',
+      evEndName = hasTouch ? ['touchend', 'touchcancel'] : ['mouseup', 'mousecancel'],
+
+      vtracker = new VelocityTracker(),
+      container = window,
+
+      mDownPoint,
+      mPrevPoint,
+
+      dragging = false,
+      isFirstDrag = false,
+
       noop = function () {},
-      onDown = options.onUp || noop,
-      onUp = options.onUp || noop,
-      onDrag = options.onDrag || noop,
-      onFirstDrag = options.onFirstDrag || noop,
-      onFling = options.onFling || noop;
+      onDownCb = options.onUp || noop,
+      onUpCb = options.onUp || noop,
+      onDragCb = options.onDrag || noop,
+      onFirstDragCb = options.onFirstDrag || noop,
+      onFlingCb = options.onFling || noop;
 
   function getPoint (e) {
-    if (has_touch) {
+    if (hasTouch) {
       var t = (e.touches.length) ? e.touches : e.changedTouches;
-      return { x : t[0].pageX,
-               y : t[0].pageY,
-               timestamp : e.timeStamp,
+      return { x: t[0].pageX,
+               y: t[0].pageY,
+               timestamp: e.timeStamp,
                e: e};
     } else {
-      return { x : e.pageX,
-               y : e.pageY,
-               timestamp : e.timeStamp,
+      return { x: e.pageX,
+               y: e.pageY,
+               timestamp: e.timeStamp,
                e: e};
     }
   }
-  
-  function getDragData (point, previousPoint) {
+
+  function getDragData (point) {
     return { x: point.x,
              y: point.y,
-             dx: point.x - m_prev_point.x,
-             dy: point.y - m_prev_point.y,
-             totaldx: point.x - m_down_point.x,
-             totaldy: point.y - m_down_point.y,
+             dx: point.x - mPrevPoint.x,
+             dy: point.y - mPrevPoint.y,
+             totaldx: point.x - mDownPoint.x,
+             totaldy: point.y - mDownPoint.y,
              timestamp: point.timestamp,
-             down_point: m_down_point,
-             m_prev_point :  m_prev_point,
-             event: point.e 
+             downPoint: mDownPoint,
+             mPrevPoint: mPrevPoint,
+             event: point.e
            };
   }
 
   var eventHandler = {
-    handleEvent : function (event) {
+    handleEvent: function handleEvent(event) {
       switch (event.type) {
        case 'mousedown':
        case 'touchstart':
@@ -90,66 +91,66 @@ function GestureDetector(elem, options) {
       }
     },
 
-    onDown : function (e) {
-      is_dragging = true;
-      is_first_drag = true;
-      
+    onDown: function onDown(e) {
+      dragging = true;
+      isFirstDrag = true;
+
       var p = getPoint(e);
-      m_down_point = p;
-      m_prev_point = p;
+      mDownPoint = p;
+      mPrevPoint = p;
       vtracker.clear();
       vtracker.addMovement(p);
-      onDown(e);
+      onDownCb(e);
     },
 
-    onMove : function (e) {
-      if (is_dragging) {
+    onMove: function onMove(e) {
+      if (dragging) {
         var p = getPoint(e);
         vtracker.addMovement(p);
         var dragData = getDragData(p);
 
-        if (is_first_drag) {
-          onFirstDrag(dragData);
-          is_first_drag = false;
+        if (isFirstDrag) {
+          onFirstDragCb(dragData);
+          isFirstDrag = false;
         }
-        onDrag(dragData);
-        
-        m_prev_point = p;
+        onDragCb(dragData);
+
+        mPrevPoint = p;
       }
 
       return false;
     },
 
-    onUp : function (e) {
-      if (!is_dragging) { return; }
+    onUp: function onUp(e) {
+      if (!dragging) { return; }
       var p = getPoint(e);
       var dragData = getDragData(p);
-      if (is_dragging) {
-        is_dragging = false;
-        m_prev_point = undefined;
+      if (dragging) {
+        dragging = false;
+        mPrevPoint = undefined;
         var velo = vtracker.getVelocity();
-        onFling(dragData, velo);
+        onFlingCb(dragData, velo);
       }
-      onUp();
+      onUpCb();
     }
   };
 
-  Events.add(elem, ev_start_name, eventHandler);
-  Events.add(container, ev_move_name, eventHandler);
-  Events.add(container, ev_end_name, eventHandler);
+  Events.add(elem, evStartName, eventHandler);
+  Events.add(container, evMoveName, eventHandler);
+  Events.add(container, evEndName, eventHandler);
 
   return {
-    destroy : function () {
-      Events.remove(elem, ev_start_name, eventHandler);
-      Events.remove(container, ev_move_name, eventHandler);
-      Events.remove(container, ev_end_name, eventHandler);
+    destroy: function destroy() {
+      Events.remove(elem, evStartName, eventHandler);
+      Events.remove(container, evMoveName, eventHandler);
+      Events.remove(container, evEndName, eventHandler);
     },
 
-    isDragging : function isDragging() {
-      return is_dragging;
+    isDragging: function isDragging() {
+      return dragging;
     },
 
-    getVelocityTracker : function () {
+    getVelocityTracker: function getVelocityTracker() {
       return vtracker;
     }
   };

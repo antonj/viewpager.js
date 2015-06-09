@@ -59,7 +59,7 @@ var console = require('./console');
 function Scroller(interpolator, flywheel) {
 
   var GRAVITY_EARTH = 9.80665;
-  
+
   function currentAnimationTimeMillis() {
     return Date.now();
   }
@@ -280,7 +280,7 @@ function Scroller(interpolator, flywheel) {
   }
 
 
-  
+
   /**
    * Returns the current velocity.
    *
@@ -300,7 +300,7 @@ function Scroller(interpolator, flywheel) {
   function timePassed() {
     return currentAnimationTimeMillis() - mStartTime;
   }
-  
+
   return {
     /**
      *
@@ -312,7 +312,7 @@ function Scroller(interpolator, flywheel) {
     isFinished : function isFinished() {
       return mFinished;
     },
-    
+
 
     /**
      * The amount of friction applied to flings. The default value

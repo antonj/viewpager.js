@@ -4,7 +4,6 @@
 var Utils = require('./utils'),
     Raf = require('./raf'),
     Events = require('./events'),
-    console = require('./console'),
     Scroller = require('./scroller'),
     GestureDetector = require('./gesture_detector');
 
@@ -21,51 +20,50 @@ function ViewPager(elem, options) {
       MIN_DISTANCE_FOR_FLING_MS = 25, // px
       MIN_FLING_VELOCITY_PX_PER_MS = 0.4, // px / ms
 
-      elem_size = options.dragSize || undefined,
-      elem_size_on_change = function () { invalidateElemSize(); },
+      elemSize = options.dragSize || undefined,
+      elemSizeOnChange = function () { invalidateElemSize(); },
       noop = function () {},
       onPageScroll = options.onPageScroll || noop,
       onPageChange = options.onPageChange || noop,
-      onSizeChanged = options.onSizeChanged || noop,
 
       active = false,
       animationId,
       scroller = new Scroller(),
 
       position = 0;
-  
+
   function invalidateElemSize() {
     var rect = elem.getBoundingClientRect();
-    var updatedSize = DIRECTION_HORIZONTAL ?  rect.width : rect.height;
-    if (elem_size) {
-      var ratio = position === 0 ? 0 : position / elem_size;
+    var updatedSize = DIRECTION_HORIZONTAL ? rect.width : rect.height;
+    if (elemSize) {
+      var ratio = position === 0 ? 0 : position / elemSize;
       position = ratio * updatedSize;
-      elem_size = updatedSize;
+      elemSize = updatedSize;
     } else {
-      elem_size = updatedSize;
+      elemSize = updatedSize;
     }
-    return elem_size;
+    return elemSize;
   }
 
   function deltaToPage(pageIndex) {
-    return (-position) - (pageIndex * elem_size);
+    return (-position) - (pageIndex * elemSize);
   }
 
   /**
    * @return targetPage {Number} Page to scroll to
    */
-  function determineTargetPage(position, deltaPx, velocity) {
-    var pi = positionInfo(position),
+  function determineTargetPage(pos, deltaPx, velocity) {
+    var pi = positionInfo(pos),
         page = pi.page,
         pageOffset = pi.pageOffset,
         direction = Utils.sign(deltaPx),
         targetPage = page + Math.round(pageOffset);
     // FLING
-    if (Math.abs(deltaPx) > MIN_DISTANCE_FOR_FLING_MS && 
+    if (Math.abs(deltaPx) > MIN_DISTANCE_FOR_FLING_MS &&
         Math.abs(velocity) > MIN_FLING_VELOCITY_PX_PER_MS) {
       targetPage = velocity > 0 ? page : page + 1;
     } else { // NO FLING, check position
-      var totalDelta = Math.abs(deltaPx / elem_size),
+      var totalDelta = Math.abs(deltaPx / elemSize),
           pageDelta = totalDelta - Math.floor(totalDelta);
       if (Math.abs(pageDelta) > TIPPING_POINT) {
         targetPage = page + Math.ceil(pageDelta) * -direction;
@@ -77,29 +75,29 @@ function ViewPager(elem, options) {
     }
     return targetPage;
   }
-  
-  function positionInfo(position) { 
-    var totalOffset = -position / elem_size,
+
+  function positionInfo(pos) {
+    var totalOffset = -pos / elemSize,
         page = Math.floor(totalOffset),
         pageOffset = totalOffset - page;
-    return({ page: page,
-             pageOffset: pageOffset,
-             totalOffset: totalOffset });
+    return ({ page: page,
+              pageOffset: pageOffset,
+              totalOffset: totalOffset });
   }
-  
-  function handleOnScroll(position) {
-    var scrollInfo = positionInfo(position);
+
+  function handleOnScroll(pos) {
+    var scrollInfo = positionInfo(pos);
     scrollInfo.animOffset = scroller.getProgress();
     onPageScroll(scrollInfo);
   }
 
   function handleAnimEnd() {
-    onPageChange(-Math.round(position / elem_size));
+    onPageChange(-Math.round(position / elemSize));
   }
 
   function animate(interpolator) {
     function update () {
-      var is_animating = scroller.computeScrollOffset();
+      var isAnimating = scroller.computeScrollOffset();
       if (interpolator !== undefined) {
         position = Utils.lerp(interpolator(scroller.getProgress()),
                               scroller.getStartX(), scroller.getFinalX());
@@ -109,7 +107,7 @@ function ViewPager(elem, options) {
 
       handleOnScroll(position);
 
-      if (is_animating) {
+      if (isAnimating) {
         animationId = Raf.requestAnimationFrame(update);
       } else {
         handleAnimEnd();
@@ -118,29 +116,29 @@ function ViewPager(elem, options) {
     Raf.cancelAnimationFrame(animationId);
     animationId = Raf.requestAnimationFrame(update);
   }
-  
+
   var gestureDetector = new GestureDetector(elem, {
-    onFirstDrag : function (p) {
-      // prevent default scroll if we move in paging direction      
-      active =  PREVENT_ALL_NATIVE_SCROLLING || (DIRECTION_HORIZONTAL ? Math.abs(p.dx) > Math.abs(p.dy) : Math.abs(p.dx) < Math.abs(p.dy));
+    onFirstDrag: function onFirstDrag(p) {
+      // prevent default scroll if we move in paging direction
+      active = PREVENT_ALL_NATIVE_SCROLLING || (DIRECTION_HORIZONTAL ? Math.abs(p.dx) > Math.abs(p.dy) : Math.abs(p.dx) < Math.abs(p.dy));
       if (active) {
         p.event.preventDefault();
       }
     },
-    onDrag : function (p) {
-      if (!active) return;
+    onDrag: function onDrag(p) {
+      if (!active) { return; }
       var change = DIRECTION_HORIZONTAL ? p.dx : p.dy;
       var tmpPos = -(change + position);
-      if (PAGES && (tmpPos < 0 || tmpPos > ((PAGES-1) * elem_size))) {
+      if (PAGES && (tmpPos < 0 || tmpPos > ((PAGES - 1) * elemSize))) {
         change = change / 3;
       }
       position += change;
       scroller.forceFinished(true);
       handleOnScroll(position);
     },
-        
-    onFling : function (p, v) {
-      if (!active) return;
+
+    onFling: function onFling(p, v) {
+      if (!active) { return; }
       var velo = DIRECTION_HORIZONTAL ? v.vx : v.vy,
           deltaPx = DIRECTION_HORIZONTAL ? p.totaldx : p.totaldy,
           deltaOffset = deltaToPage(determineTargetPage(position, deltaPx, velo));
@@ -151,16 +149,16 @@ function ViewPager(elem, options) {
     }
   });
 
-  if (!elem_size) {
+  if (!elemSize) {
     invalidateElemSize();
-    Events.add(window, 'resize', elem_size_on_change);
+    Events.add(window, 'resize', elemSizeOnChange);
   }
-  
+
   return {
     /** Remove listeners */
-    destroy : function () {
+    destroy: function destroy() {
       gestureDetector.destroy();
-      Events.remove(window, 'resize', elem_size_on_change);
+      Events.remove(window, 'resize', elemSizeOnChange);
     },
 
     /**
@@ -170,9 +168,9 @@ function ViewPager(elem, options) {
      * for no animation.
      * @param {function} interpolator a function that interpolates a number [0-1]
      */
-    next : function (duration, interpolator) {
+    next: function next(duration, interpolator) {
       var t = duration !== undefined ? Math.abs(duration) : ANIM_DURATION_MAX,
-          page = -((scroller.isFinished() ? position : (scroller.getFinalX())) / elem_size) + 1;
+          page = -((scroller.isFinished() ? position : (scroller.getFinalX())) / elemSize) + 1;
       if (PAGES) {
         page = Utils.clamp(page, 0, PAGES - 1);
       }
@@ -190,10 +188,10 @@ function ViewPager(elem, options) {
      * for no animation.
      * @param {function} interpolator a function that interpolates a number [0-1]
      */
-    previous : function(duration, interpolator) {
+    previous: function previous(duration, interpolator) {
       var t = duration !== undefined ? Math.abs(duration) : ANIM_DURATION_MAX,
-          page = -((scroller.isFinished() ? position : (scroller.getFinalX())) / elem_size) - 1;
-      
+          page = -((scroller.isFinished() ? position : (scroller.getFinalX())) / elemSize) - 1;
+
       if (PAGES) {
         page = Utils.clamp(page, 0, PAGES - 1);
       }
@@ -209,7 +207,7 @@ function ViewPager(elem, options) {
      * for no animation.
      * @param {function} interpolator a function that interpolates a number [0-1]
      */
-    goToIndex : function (page, duration, interpolator) {
+    goToIndex: function goToIndex(page, duration, interpolator) {
       var t = duration !== undefined ? Math.abs(duration) : ANIM_DURATION_MAX;
       if (PAGES) {
         page = Utils.clamp(page, 0, PAGES - 1);

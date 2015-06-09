@@ -36,7 +36,7 @@ module.exports = window.console || {
 'use strict';
 
 module.exports = {
-  add : function (el, type, fn, capture) {
+  add: function (el, type, fn, capture) {
     var i, l;
     if (!(type instanceof Array)) {
       type = [type];
@@ -46,7 +46,7 @@ module.exports = {
     }
   },
 
-  remove : function (el, type, fn, capture) {
+  remove: function (el, type, fn, capture) {
     var i, l;
     if (!(type instanceof Array)) {
       type = [type];
@@ -64,7 +64,6 @@ module.exports = {
 var Utils = _dereq_('./utils'),
     Raf = _dereq_('./raf'),
     Events = _dereq_('./events'),
-    console = _dereq_('./console'),
     Scroller = _dereq_('./scroller'),
     GestureDetector = _dereq_('./gesture_detector');
 
@@ -81,51 +80,50 @@ function ViewPager(elem, options) {
       MIN_DISTANCE_FOR_FLING_MS = 25, // px
       MIN_FLING_VELOCITY_PX_PER_MS = 0.4, // px / ms
 
-      elem_size = options.dragSize || undefined,
-      elem_size_on_change = function () { invalidateElemSize(); },
+      elemSize = options.dragSize || undefined,
+      elemSizeOnChange = function () { invalidateElemSize(); },
       noop = function () {},
       onPageScroll = options.onPageScroll || noop,
       onPageChange = options.onPageChange || noop,
-      onSizeChanged = options.onSizeChanged || noop,
 
       active = false,
       animationId,
       scroller = new Scroller(),
 
       position = 0;
-  
+
   function invalidateElemSize() {
     var rect = elem.getBoundingClientRect();
-    var updatedSize = DIRECTION_HORIZONTAL ?  rect.width : rect.height;
-    if (elem_size) {
-      var ratio = position === 0 ? 0 : position / elem_size;
+    var updatedSize = DIRECTION_HORIZONTAL ? rect.width : rect.height;
+    if (elemSize) {
+      var ratio = position === 0 ? 0 : position / elemSize;
       position = ratio * updatedSize;
-      elem_size = updatedSize;
+      elemSize = updatedSize;
     } else {
-      elem_size = updatedSize;
+      elemSize = updatedSize;
     }
-    return elem_size;
+    return elemSize;
   }
 
   function deltaToPage(pageIndex) {
-    return (-position) - (pageIndex * elem_size);
+    return (-position) - (pageIndex * elemSize);
   }
 
   /**
    * @return targetPage {Number} Page to scroll to
    */
-  function determineTargetPage(position, deltaPx, velocity) {
-    var pi = positionInfo(position),
+  function determineTargetPage(pos, deltaPx, velocity) {
+    var pi = positionInfo(pos),
         page = pi.page,
         pageOffset = pi.pageOffset,
         direction = Utils.sign(deltaPx),
         targetPage = page + Math.round(pageOffset);
     // FLING
-    if (Math.abs(deltaPx) > MIN_DISTANCE_FOR_FLING_MS && 
+    if (Math.abs(deltaPx) > MIN_DISTANCE_FOR_FLING_MS &&
         Math.abs(velocity) > MIN_FLING_VELOCITY_PX_PER_MS) {
       targetPage = velocity > 0 ? page : page + 1;
     } else { // NO FLING, check position
-      var totalDelta = Math.abs(deltaPx / elem_size),
+      var totalDelta = Math.abs(deltaPx / elemSize),
           pageDelta = totalDelta - Math.floor(totalDelta);
       if (Math.abs(pageDelta) > TIPPING_POINT) {
         targetPage = page + Math.ceil(pageDelta) * -direction;
@@ -137,29 +135,29 @@ function ViewPager(elem, options) {
     }
     return targetPage;
   }
-  
-  function positionInfo(position) { 
-    var totalOffset = -position / elem_size,
+
+  function positionInfo(pos) {
+    var totalOffset = -pos / elemSize,
         page = Math.floor(totalOffset),
         pageOffset = totalOffset - page;
-    return({ page: page,
-             pageOffset: pageOffset,
-             totalOffset: totalOffset });
+    return ({ page: page,
+              pageOffset: pageOffset,
+              totalOffset: totalOffset });
   }
-  
-  function handleOnScroll(position) {
-    var scrollInfo = positionInfo(position);
+
+  function handleOnScroll(pos) {
+    var scrollInfo = positionInfo(pos);
     scrollInfo.animOffset = scroller.getProgress();
     onPageScroll(scrollInfo);
   }
 
   function handleAnimEnd() {
-    onPageChange(-Math.round(position / elem_size));
+    onPageChange(-Math.round(position / elemSize));
   }
 
   function animate(interpolator) {
     function update () {
-      var is_animating = scroller.computeScrollOffset();
+      var isAnimating = scroller.computeScrollOffset();
       if (interpolator !== undefined) {
         position = Utils.lerp(interpolator(scroller.getProgress()),
                               scroller.getStartX(), scroller.getFinalX());
@@ -169,7 +167,7 @@ function ViewPager(elem, options) {
 
       handleOnScroll(position);
 
-      if (is_animating) {
+      if (isAnimating) {
         animationId = Raf.requestAnimationFrame(update);
       } else {
         handleAnimEnd();
@@ -178,29 +176,29 @@ function ViewPager(elem, options) {
     Raf.cancelAnimationFrame(animationId);
     animationId = Raf.requestAnimationFrame(update);
   }
-  
+
   var gestureDetector = new GestureDetector(elem, {
-    onFirstDrag : function (p) {
-      // prevent default scroll if we move in paging direction      
-      active =  PREVENT_ALL_NATIVE_SCROLLING || (DIRECTION_HORIZONTAL ? Math.abs(p.dx) > Math.abs(p.dy) : Math.abs(p.dx) < Math.abs(p.dy));
+    onFirstDrag: function onFirstDrag(p) {
+      // prevent default scroll if we move in paging direction
+      active = PREVENT_ALL_NATIVE_SCROLLING || (DIRECTION_HORIZONTAL ? Math.abs(p.dx) > Math.abs(p.dy) : Math.abs(p.dx) < Math.abs(p.dy));
       if (active) {
         p.event.preventDefault();
       }
     },
-    onDrag : function (p) {
-      if (!active) return;
+    onDrag: function onDrag(p) {
+      if (!active) { return; }
       var change = DIRECTION_HORIZONTAL ? p.dx : p.dy;
       var tmpPos = -(change + position);
-      if (PAGES && (tmpPos < 0 || tmpPos > ((PAGES-1) * elem_size))) {
+      if (PAGES && (tmpPos < 0 || tmpPos > ((PAGES - 1) * elemSize))) {
         change = change / 3;
       }
       position += change;
       scroller.forceFinished(true);
       handleOnScroll(position);
     },
-        
-    onFling : function (p, v) {
-      if (!active) return;
+
+    onFling: function onFling(p, v) {
+      if (!active) { return; }
       var velo = DIRECTION_HORIZONTAL ? v.vx : v.vy,
           deltaPx = DIRECTION_HORIZONTAL ? p.totaldx : p.totaldy,
           deltaOffset = deltaToPage(determineTargetPage(position, deltaPx, velo));
@@ -211,16 +209,16 @@ function ViewPager(elem, options) {
     }
   });
 
-  if (!elem_size) {
+  if (!elemSize) {
     invalidateElemSize();
-    Events.add(window, 'resize', elem_size_on_change);
+    Events.add(window, 'resize', elemSizeOnChange);
   }
-  
+
   return {
     /** Remove listeners */
-    destroy : function () {
+    destroy: function destroy() {
       gestureDetector.destroy();
-      Events.remove(window, 'resize', elem_size_on_change);
+      Events.remove(window, 'resize', elemSizeOnChange);
     },
 
     /**
@@ -230,9 +228,9 @@ function ViewPager(elem, options) {
      * for no animation.
      * @param {function} interpolator a function that interpolates a number [0-1]
      */
-    next : function (duration, interpolator) {
+    next: function next(duration, interpolator) {
       var t = duration !== undefined ? Math.abs(duration) : ANIM_DURATION_MAX,
-          page = -((scroller.isFinished() ? position : (scroller.getFinalX())) / elem_size) + 1;
+          page = -((scroller.isFinished() ? position : (scroller.getFinalX())) / elemSize) + 1;
       if (PAGES) {
         page = Utils.clamp(page, 0, PAGES - 1);
       }
@@ -250,10 +248,10 @@ function ViewPager(elem, options) {
      * for no animation.
      * @param {function} interpolator a function that interpolates a number [0-1]
      */
-    previous : function(duration, interpolator) {
+    previous: function previous(duration, interpolator) {
       var t = duration !== undefined ? Math.abs(duration) : ANIM_DURATION_MAX,
-          page = -((scroller.isFinished() ? position : (scroller.getFinalX())) / elem_size) - 1;
-      
+          page = -((scroller.isFinished() ? position : (scroller.getFinalX())) / elemSize) - 1;
+
       if (PAGES) {
         page = Utils.clamp(page, 0, PAGES - 1);
       }
@@ -269,7 +267,7 @@ function ViewPager(elem, options) {
      * for no animation.
      * @param {function} interpolator a function that interpolates a number [0-1]
      */
-    goToIndex : function (page, duration, interpolator) {
+    goToIndex: function goToIndex(page, duration, interpolator) {
       var t = duration !== undefined ? Math.abs(duration) : ANIM_DURATION_MAX;
       if (PAGES) {
         page = Utils.clamp(page, 0, PAGES - 1);
@@ -286,7 +284,7 @@ function ViewPager(elem, options) {
 
 module.exports = ViewPager;
 
-},{"./console":1,"./events":2,"./gesture_detector":4,"./raf":5,"./scroller":6,"./utils":7}],4:[function(_dereq_,module,exports){
+},{"./events":2,"./gesture_detector":4,"./raf":5,"./scroller":6,"./utils":7}],4:[function(_dereq_,module,exports){
 /*global console, window, require, module */
 'use strict';
 
@@ -309,60 +307,61 @@ module.exports = ViewPager;
  *                            canceling default browser behaviour.
  */
 function GestureDetector(elem, options) {
-  var has_touch = 'ontouchstart' in window,
-      ev_start_name = has_touch ? 'touchstart' : 'mousedown',
-      ev_move_name = has_touch ? 'touchmove' : 'mousemove',
-      ev_end_name = has_touch ? ['touchend', 'touchcancel'] : ['mouseup', 'mousecancel'],
-      
-      Events = _dereq_('./events'),
-      vtracker = new (_dereq_('./velocity_tracker'))(),
-      container = window,
-      self = this,
+  var Events = _dereq_('./events'),
+      VelocityTracker = _dereq_('./velocity_tracker');
 
-      m_down_point,
-      m_prev_point,
-      
-      is_dragging = false,
-      is_first_drag = false,
-      
+  var hasTouch = 'ontouchstart' in window,
+      evStartName = hasTouch ? 'touchstart' : 'mousedown',
+      evMoveName = hasTouch ? 'touchmove' : 'mousemove',
+      evEndName = hasTouch ? ['touchend', 'touchcancel'] : ['mouseup', 'mousecancel'],
+
+      vtracker = new VelocityTracker(),
+      container = window,
+
+      mDownPoint,
+      mPrevPoint,
+
+      dragging = false,
+      isFirstDrag = false,
+
       noop = function () {},
-      onDown = options.onUp || noop,
-      onUp = options.onUp || noop,
-      onDrag = options.onDrag || noop,
-      onFirstDrag = options.onFirstDrag || noop,
-      onFling = options.onFling || noop;
+      onDownCb = options.onUp || noop,
+      onUpCb = options.onUp || noop,
+      onDragCb = options.onDrag || noop,
+      onFirstDragCb = options.onFirstDrag || noop,
+      onFlingCb = options.onFling || noop;
 
   function getPoint (e) {
-    if (has_touch) {
+    if (hasTouch) {
       var t = (e.touches.length) ? e.touches : e.changedTouches;
-      return { x : t[0].pageX,
-               y : t[0].pageY,
-               timestamp : e.timeStamp,
+      return { x: t[0].pageX,
+               y: t[0].pageY,
+               timestamp: e.timeStamp,
                e: e};
     } else {
-      return { x : e.pageX,
-               y : e.pageY,
-               timestamp : e.timeStamp,
+      return { x: e.pageX,
+               y: e.pageY,
+               timestamp: e.timeStamp,
                e: e};
     }
   }
-  
-  function getDragData (point, previousPoint) {
+
+  function getDragData (point) {
     return { x: point.x,
              y: point.y,
-             dx: point.x - m_prev_point.x,
-             dy: point.y - m_prev_point.y,
-             totaldx: point.x - m_down_point.x,
-             totaldy: point.y - m_down_point.y,
+             dx: point.x - mPrevPoint.x,
+             dy: point.y - mPrevPoint.y,
+             totaldx: point.x - mDownPoint.x,
+             totaldy: point.y - mDownPoint.y,
              timestamp: point.timestamp,
-             down_point: m_down_point,
-             m_prev_point :  m_prev_point,
-             event: point.e 
+             downPoint: mDownPoint,
+             mPrevPoint: mPrevPoint,
+             event: point.e
            };
   }
 
   var eventHandler = {
-    handleEvent : function (event) {
+    handleEvent: function handleEvent(event) {
       switch (event.type) {
        case 'mousedown':
        case 'touchstart':
@@ -379,66 +378,66 @@ function GestureDetector(elem, options) {
       }
     },
 
-    onDown : function (e) {
-      is_dragging = true;
-      is_first_drag = true;
-      
+    onDown: function onDown(e) {
+      dragging = true;
+      isFirstDrag = true;
+
       var p = getPoint(e);
-      m_down_point = p;
-      m_prev_point = p;
+      mDownPoint = p;
+      mPrevPoint = p;
       vtracker.clear();
       vtracker.addMovement(p);
-      onDown(e);
+      onDownCb(e);
     },
 
-    onMove : function (e) {
-      if (is_dragging) {
+    onMove: function onMove(e) {
+      if (dragging) {
         var p = getPoint(e);
         vtracker.addMovement(p);
         var dragData = getDragData(p);
 
-        if (is_first_drag) {
-          onFirstDrag(dragData);
-          is_first_drag = false;
+        if (isFirstDrag) {
+          onFirstDragCb(dragData);
+          isFirstDrag = false;
         }
-        onDrag(dragData);
-        
-        m_prev_point = p;
+        onDragCb(dragData);
+
+        mPrevPoint = p;
       }
 
       return false;
     },
 
-    onUp : function (e) {
-      if (!is_dragging) { return; }
+    onUp: function onUp(e) {
+      if (!dragging) { return; }
       var p = getPoint(e);
       var dragData = getDragData(p);
-      if (is_dragging) {
-        is_dragging = false;
-        m_prev_point = undefined;
+      if (dragging) {
+        dragging = false;
+        mPrevPoint = undefined;
         var velo = vtracker.getVelocity();
-        onFling(dragData, velo);
+        onFlingCb(dragData, velo);
       }
-      onUp();
+      onUpCb();
     }
   };
 
-  Events.add(elem, ev_start_name, eventHandler);
-  Events.add(container, ev_move_name, eventHandler);
-  Events.add(container, ev_end_name, eventHandler);
+  Events.add(elem, evStartName, eventHandler);
+  Events.add(container, evMoveName, eventHandler);
+  Events.add(container, evEndName, eventHandler);
 
   return {
-    destroy : function () {
-      Events.remove(elem, ev_start_name, eventHandler);
-      Events.remove(container, ev_move_name, eventHandler);
-      Events.remove(container, ev_end_name, eventHandler);
+    destroy: function destroy() {
+      Events.remove(elem, evStartName, eventHandler);
+      Events.remove(container, evMoveName, eventHandler);
+      Events.remove(container, evEndName, eventHandler);
     },
 
-    isDragging : function isDragging() {
-      return is_dragging;
+    isDragging: function isDragging() {
+      return dragging;
     },
 
-    getVelocityTracker : function () {
+    getVelocityTracker: function getVelocityTracker() {
       return vtracker;
     }
   };
@@ -544,7 +543,7 @@ var console = _dereq_('./console');
 function Scroller(interpolator, flywheel) {
 
   var GRAVITY_EARTH = 9.80665;
-  
+
   function currentAnimationTimeMillis() {
     return Date.now();
   }
@@ -765,7 +764,7 @@ function Scroller(interpolator, flywheel) {
   }
 
 
-  
+
   /**
    * Returns the current velocity.
    *
@@ -785,7 +784,7 @@ function Scroller(interpolator, flywheel) {
   function timePassed() {
     return currentAnimationTimeMillis() - mStartTime;
   }
-  
+
   return {
     /**
      *
@@ -797,7 +796,7 @@ function Scroller(interpolator, flywheel) {
     isFinished : function isFinished() {
       return mFinished;
     },
-    
+
 
     /**
      * The amount of friction applied to flings. The default value
@@ -1193,22 +1192,22 @@ module.exports = {
   /**
    * Clamp val between min and max
    */
-  clamp : function clamp (val, min, max) {
+  clamp: function clamp(val, min, max) {
     return Math.min(Math.max(val, min), max);
   },
 
   /**
-   * lerp a value [0-1] to new range [start-stop]
+   * lerp a value [0-1] to new range [start-stop]
    */
-  lerp : function lerp (value, start, stop) {
-    return start + (stop-start) * value;
+  lerp: function lerp(value, start, stop) {
+    return start + (stop - start) * value;
   },
 
   /**
    * map value in range [istart-istop] to range [ostart-ostop]
    * map(5, 0, 10, 0, 100) -> 50
    */
-  map : function map (value, istart, istop, ostart, ostop) {
+  map: function map(value, istart, istop, ostart, ostop) {
     return ostart + (ostop - ostart) * ((value - istart) / (istop - istart));
   },
 
@@ -1216,7 +1215,7 @@ module.exports = {
    * map value in range [istart-istop] to range [ostart-ostop], clamp values between [ostart-ostop]
    * map(11, 0, 10, 0, 100) -> 100
    */
-  mapClamp : function mapClamp (value, istart, istop, ostart, ostop) {
+  mapClamp: function mapClamp(value, istart, istop, ostart, ostop) {
     return this.clamp(this.map(value, istart, istop, ostart, ostop),
                       ostart < ostop ? ostart : ostop, ostart < ostop ? ostop : ostart);
   },
@@ -1229,7 +1228,7 @@ module.exports = {
    * @param v {Number}
    * @return {Number}
    */
-  roundTo : function roundTo (i, v) {
+  roundTo: function roundTo(i, v) {
     return Math.round(i / v) * v;
   },
 
@@ -1242,7 +1241,7 @@ module.exports = {
    * @param v {Number} round value down to closest even v
    * @return {Number}
    */
-  roundDownTo : function roundDownTo(i, v) {
+  roundDownTo: function roundDownTo(i, v) {
     return Math.floor(i / v) * v;
   },
 
@@ -1254,9 +1253,9 @@ module.exports = {
    *
    * @param i {Number} Value to round
    * @param v {Number} Round i up to closest even v
-   * @return 
+   * @return
    */
-  roundUpTo : function roundUpTo(i, v) {
+  roundUpTo: function roundUpTo(i, v) {
     return Math.ceil(i / v) * v;
   },
 
@@ -1264,7 +1263,7 @@ module.exports = {
    * @param num {Number}
    * @return {Number} -1 if negative, 1 if positive, 0 otherwise
    */
-  sign : function sign (num) {
+  sign: function sign (num) {
     return num ? (num < 0) ? -1 : 1 : 0;
   }
 };
@@ -1277,7 +1276,7 @@ module.exports = {
  * Port of the Android VelocityTracker: http://code.metager.de/source/xref/android/4.4/frameworks/native/libs/input/VelocityTracker.cpp
  *
  * Original Licence
- * 
+ *
  * Copyright (C) 2012 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -1293,425 +1292,425 @@ module.exports = {
  * limitations under the License.
  */
 function VelocityTracker() {
-    var last_timestamp = 0;
+  /**
+   * Threshold for determining that a pointer has stopped moving.
+   * Some input devices do not send ACTION_MOVE events in the case where a pointer has
+   * stopped.  We need to detect this case so that we can accurately predict the
+   * velocity after the pointer starts moving again.
+   */
+  var ASSUME_POINTER_STOPPED_TIME_MS = 40;
 
-    /** Movement points to do calcs on */
-    var positions = new Array(HISTORY_SIZE);
+  /** Max number of points to use in calculations */
+  var HISTORY_SIZE = 5;
 
-    /** Index of latest added points in positions */
-    var mIndex = 0;
+  /** If points are old don't use in calculations */
+  var HORIZON_MS = 200;
 
-    /** Estimator used */
-    var estimator = new Estimator();
+  var DEBUG = false;
 
-    /**
-     * Threshold for determining that a pointer has stopped moving.
-     * Some input devices do not send ACTION_MOVE events in the case where a pointer has
-     * stopped.  We need to detect this case so that we can accurately predict the
-     * velocity after the pointer starts moving again.
-     */
-    var ASSUME_POINTER_STOPPED_TIME_MS = 40;
+  /** Movement points to do calcs on */
+  var positions = new Array(HISTORY_SIZE);
 
-    /** Max number of points to use in calculations */
-    var HISTORY_SIZE = 5;
-    
-    /** If points are old don't use in calculations */
-    var HORIZON_MS = 200;
+  var last_timestamp = 0;
 
-    var DEBUG = false;
+  /** Index of latest added points in positions */
+  var mIndex = 0;
 
-    function Estimator() {
-        return {
-            MAX_DEGREE : 4,
-            // Estimator time base.
-            time : 0,
+  /** Estimator used */
+  var estimator = new Estimator();
 
-            // Polynomial coefficients describing motion in X and Y.
-            xCoeff : new Array(4 + 1), // MAX_DEGREE + 1
-            yCoeff : new Array(4 + 1),
-
-            // Polynomial degree (number of coefficients), or zero if no information is
-            // available.
-            degree : 2,
-
-            // Confidence (coefficient of determination), between 0 (no fit) and 1 (perfect fit).
-            confidence : 0,
-
-            clear : function clear() {
-                this.time = 0;
-                this.degree = 0;
-                this.confidence = 0;
-                for (var i = 0; i <= this.MAX_DEGREE; i++) {
-                    this.xCoeff[i] = 0;
-                    this.yCoeff[i] = 0;
-                }
-            }
-        };
-    }
-
-    function log(x) {
-        console.log(
-            JSON.stringify(x));
-    }
-
-    function vectorDot(va, vb) {
-        var r = 0;
-        var l = va.length;
-        while (l--) {
-            r += va[l] * vb[l];
-        }
-        return r;
-    }
-
-    function vectorNorm(va) {
-        var r = 0;
-        var i = va.length;
-        while (i--) {
-            r += va[i] * va[i];
-        }
-        return Math.sqrt(r);
-    }
-
-    function createTwoDimArray(m, n) {
-        var x = new Array(m);
-        for (var i = 0; i < m; i++) {
-            x[i] = new Array(n);
-        }
-        return x;
-    }
-
-    function clear() {
-        mIndex = 0;
-        positions[0] = undefined;
-    }
-
-    /**
-     * Solves a linear least squares problem to obtain a N degree polynomial that fits
-     * the specified input data as nearly as possible.
-     *
-     * Returns true if a solution is found, false otherwise.
-     *
-     * The input consists of two vectors of data points X and Y with indices 0..m-1
-     * along with a weight vector W of the same size.
-     *
-     * The output is a vector B with indices 0..n that describes a polynomial
-     * that fits the data, such the sum of W[i] * W[i] * abs(Y[i] - (B[0] + B[1] X[i]
-     * + B[2] X[i]^2 ... B[n] X[i]^n)) for all i between 0 and m-1 is minimized.
-     *
-     * Accordingly, the weight vector W should be initialized by the caller with the
-     * reciprocal square root of the variance of the error in each input data point.
-     * In other words, an ideal choice for W would be W[i] = 1 / var(Y[i]) = 1 / stddev(Y[i]).
-     * The weights express the relative importance of each data point.  If the weights are
-     * all 1, then the data points are considered to be of equal importance when fitting
-     * the polynomial.  It is a good idea to choose weights that diminish the importance
-     * of data points that may have higher than usual error margins.
-     *
-     * Errors among data points are assumed to be independent.  W is represented here
-     * as a vector although in the literature it is typically taken to be a diagonal matrix.
-     *
-     * That is to say, the function that generated the input data can be approximated
-     * by y(x) ~= B[0] + B[1] x + B[2] x^2 + ... + B[n] x^n.
-     *
-     * The coefficient of determination (R^2) is also returned to describe the goodness
-     * of fit of the model for the given data.  It is a value between 0 and 1, where 1
-     * indicates perfect correspondence.
-     *
-     * This function first expands the X vector to a m by n matrix A such that
-     * A[i][0] = 1, A[i][1] = X[i], A[i][2] = X[i]^2, ..., A[i][n] = X[i]^n, then
-     * multiplies it by w[i]./
-     *
-     * Then it calculates the QR decomposition of A yielding an m by m orthonormal matrix Q
-     * and an m by n upper triangular matrix R.  Because R is upper triangular (lower
-     * part is all zeroes), we can simplify the decomposition into an m by n matrix
-     * Q1 and a n by n matrix R1 such that A = Q1 R1.
-     *
-     * Finally we solve the system of linear equations given by R1 B = (Qtranspose W Y)
-     * to find B.
-     *
-     * For efficiency, we lay out A and Q column-wise in memory because we frequently
-     * operate on the column vectors.  Conversely, we lay out R row-wise.
-     *
-     * http://en.wikipedia.org/wiki/Numerical_methods_for_linear_least_squares
-     * http://en.wikipedia.org/wiki/Gram-Schmidt
-     */
-    function solveLeastSquares(x, y, w,
-                               m,  n, outB, outDet) {
-        // indexes
-        var h, i, j;
-        
-        if (DEBUG) {
-            console.log("solveLeastSquares: ",
-                        "m => ", m,
-                        "n => ", n,
-                        "x => ", x,
-                        "y => ", y,
-                        "w => ", w,
-                        "outB =>", outB,
-                        "outDet =>", outDet);
-        }
-
-        // Expand the X vector to a matrix A, pre-multiplied by the weights.
-        // float a[n][m]; // column-major order
-        var a = createTwoDimArray(n, m);
-        for (h = 0; h < m; h++) {
-            a[0][h] = w[h];
-            for (i = 1; i < n; i++) {
-                a[i][h] = a[i - 1][h] * x[h];
-            }
-        }
-        if (DEBUG) {
-            log({a : a});
-        }
-
-        // Apply the Gram-Schmidt process to A to obtain its QR decomposition.
-        // float q[n][m]; // orthonormal basis, column-major order
-        var q = createTwoDimArray(n, m);
-        // float r[n][n]; // upper triangular matrix, row-major order
-        var r = createTwoDimArray(n, n);
-        for (j = 0; j < n; j++) {
-            for (h = 0; h < m; h++) {
-                q[j][h] = a[j][h];
-            }
-            for (i = 0; i < j; i++) {
-                var dot = vectorDot(q[j], q[i]);
-                for (h = 0; h < m; h++) {
-                    q[j][h] -= dot * q[i][h];
-                }
-            }
-
-            var norm = vectorNorm(q[j], m);
-            if (DEBUG) {
-                log({q : q});
-                console.log('norm', norm, m, q[j][0]);
-            }
-            if (norm < 0.000001) {
-                // vectors are linearly dependent or zero so no solution
-                if (DEBUG) {
-                    console.log("  - no solution, norm=%f", norm);
-                }
-                return false;
-            }
-
-            var invNorm = 1.0 / norm;
-            for (h = 0; h < m; h++) {
-                q[j][h] *= invNorm;
-            }
-            for (i = 0; i < n; i++) {
-                r[j][i] = i < j ? 0 : vectorDot(q[j], a[i]);
-            }
-        }
-        
-        if (DEBUG) {
-            console.log("  - q=> ", q[0][0]);
-            console.log("  - r=> ", r[0][0]);
-            
-            // calculate QR, if we factored A correctly then QR should equal A
-            var qr = createTwoDimArray(n, m);
-            for (h = 0; h < m; h++) {
-                for (i = 0; i < n; i++) {
-                    qr[i][h] = 0;
-                    for (j = 0; j < n; j++) {
-                        qr[i][h] += q[j][h] * r[j][i];
-                    }
-                }
-            }
-            console.log("  - qr=%s",qr[0][0]);
-        } // End DEBUG
-
-        // Solve R B = Qt W Y to find B.  This is easy because R is upper triangular.
-        // We just work from bottom-right to top-left calculating B's coefficients.
-        var wy = new Array(m);
-        for (h = 0; h < m; h++) {
-            wy[h] = y[h] * w[h];
-        }
-        for (i = n; i-- !== 0; ) {
-            outB[i] = vectorDot(q[i], wy, m);
-            for (j = n - 1; j > i; j--) {
-                outB[i] -= r[i][j] * outB[j];
-            }
-            outB[i] /= r[i][i];
-        }
-        
-        if (DEBUG) {
-            console.log("  - b=%s", outB);
-        }
-
-        // Calculate the coefficient of determination as 1 - (SSerr / SStot) where
-        // SSerr is the residual sum of squares (variance of the error),
-        // and SStot is the total sum of squares (variance of the data) where each
-        // has been weighted.
-        var ymean = 0;
-        for (h = 0; h < m; h++) {
-            ymean += y[h];
-        }
-        ymean /= m;
-
-        var sserr = 0;
-        var sstot = 0;
-        for (h = 0; h < m; h++) {
-            var err = y[h] - outB[0];
-            var term = 1;
-            for (i = 1; i < n; i++) {
-                term *= x[h];
-                err -= term * outB[i];
-            }
-            sserr += w[h] * w[h] * err * err;
-            var vari = y[h] - ymean;
-            sstot += w[h] * w[h] * vari * vari;
-        }
-        outDet.confidence = sstot > 0.000001 ? 1.0 - (sserr / sstot) : 1;
-        
-        if (DEBUG) {
-            console.log(
-                "  - sserr => ", sserr,
-                "  - sstot => ", sstot,
-                "  - det => ", outDet
-            );
-        }
-        return true;
-    }
-
-    function chooseWeight(index) {
-        // TODO
-        return 1;
-    }
-
-    /**
-     * @param degree Order use 2...
-     */
-    function prepareEstimator(degree) {
-        estimator.clear();
-        
-        // Iterate over movement samples in reverse time order and collect samples.
-        var x = new Array(HISTORY_SIZE);
-        var y = new Array(HISTORY_SIZE);
-        var w = new Array(HISTORY_SIZE);
-        var time = new Array(HISTORY_SIZE);
-        var m = 0;
-        var index = mIndex;
-        var newestMovement = positions[mIndex];
-        if (newestMovement === undefined) {
-            return false;
-        }
-        do {
-            var movement = positions[index];
-            if (!movement) {
-                break;
-            }
-
-            var age = newestMovement.timestamp - movement.timestamp;
-            if (age > HORIZON_MS) {
-                break; // Old points don't use
-            }
-
-            x[m] = movement.x;
-            y[m] = movement.y;
-            w[m] = chooseWeight(index);
-            time[m] = -age;
-            index = (index === 0 ? HISTORY_SIZE : index) - 1;
-        } while (++m < HISTORY_SIZE);
-
-        if (m === 0) {
-            console.log('no data to estimate');
-            return false; // no data
-        }
-
-        // Calculate a least squares polynomial fit.
-        if (degree > m - 1) {
-            degree = m - 1;
-        }
-        if (degree >= 1) {
-            // TODO change xdet, ydet to be returned from function
-            var xdet = {confidence : 0};
-            var ydet = {confidence : 0};
-            var n = degree + 1;
-            if (solveLeastSquares(time, x, w, m, n, estimator.xCoeff, xdet) &&
-                solveLeastSquares(time, y, w, m, n, estimator.yCoeff, ydet)) {
-                estimator.time = newestMovement.timestamp;
-                estimator.degree = degree;
-                estimator.confidence = xdet.confidence * ydet.confidence;
-                
-                if (DEBUG) {
-                    console.log("Estimate: ",
-                                "degree", estimator.degree,
-                                "xCoeff", estimator.xCoeff,
-                                "yCoeff", estimator.yCoeff,
-                                "confidence", estimator.confidence);
-                }
-                return true;
-            }
-        }
-
-        // No velocity data available for this pointer, but we do have its current position.
-        if (DEBUG) {
-            console.log("velocity data available for this pointer, but we do have its current position.");
-        }
-        estimator.xCoeff[0] = x[0];
-        estimator.yCoeff[0] = y[0];
-        estimator.time = newestMovement.timestamp;
-        estimator.degree = 0;
-        estimator.confidence = 1;
-        return true;
-    }
-
+  function Estimator() {
     return {
-        clear : clear,
-      
-        getVelocity : function getVelocity() {
-            // 2 polynomial estimator
-            if (prepareEstimator(2) && estimator.degree >= 1) {
-                return {
-                    unit : "px / ms",
-                    vx : estimator.xCoeff[1],
-                    vy : estimator.yCoeff[1]
-                };
-            }
-          return {
-            info : 'no velo',
-            unit : "px / ms",
-            vx : 0,
-            vy : 0
-          };
-        },
-        
-      getPositions : function () {
-        var m = 0;
-        var index = mIndex;
-        var r = [];
-        do {
-          var movement = positions[index];
-          if (!movement) {
-            break;
-          }
-          r.push(movement);
-          index = (index === 0 ? HISTORY_SIZE : index) - 1;
-        } while (++m < HISTORY_SIZE);
-        
-        return r;
-      },
+      MAX_DEGREE: 4,
+      // Estimator time base.
+      time: 0,
 
-        /**
-         * @param pos = {x, y, timestamp_ms}
-         */
-        addMovement : function addMovement(pos) {
-            if (pos.timestamp >= last_timestamp + ASSUME_POINTER_STOPPED_TIME_MS) {
-                // We have not received any movements for too long.  Assume that all pointers
-                // have stopped.
-                if (DEBUG) {
-                    console.log('no movements assume stop');
-                }
-                clear();
-            }
-            last_timestamp = pos.timestamp;
+      // Polynomial coefficients describing motion in X and Y.
+      xCoeff: new Array(4 + 1), // MAX_DEGREE + 1
+      yCoeff: new Array(4 + 1),
 
-            // strategy add
-            if (++mIndex === HISTORY_SIZE) {
-                mIndex = 0;
-            }
+      // Polynomial degree (number of coefficients), or zero if no information is
+      // available.
+      degree: 2,
 
-            positions[mIndex] = pos;
+      // Confidence (coefficient of determination), between 0 (no fit) and 1 (perfect fit).
+      confidence: 0,
+
+      clear: function clear() {
+        this.time = 0;
+        this.degree = 0;
+        this.confidence = 0;
+        for (var i = 0; i <= this.MAX_DEGREE; i++) {
+          this.xCoeff[i] = 0;
+          this.yCoeff[i] = 0;
         }
+      }
     };
+  }
+
+  function log(x) {
+    console.log(
+      JSON.stringify(x));
+  }
+
+  function vectorDot(va, vb) {
+    var r = 0;
+    var l = va.length;
+    while (l--) {
+      r += va[l] * vb[l];
+    }
+    return r;
+  }
+
+  function vectorNorm(va) {
+    var r = 0;
+    var i = va.length;
+    while (i--) {
+      r += va[i] * va[i];
+    }
+    return Math.sqrt(r);
+  }
+
+  function createTwoDimArray(m, n) {
+    var x = new Array(m);
+    for (var i = 0; i < m; i++) {
+      x[i] = new Array(n);
+    }
+    return x;
+  }
+
+  function clear() {
+    mIndex = 0;
+    positions[0] = undefined;
+  }
+
+  /**
+   * Solves a linear least squares problem to obtain a N degree polynomial that fits
+   * the specified input data as nearly as possible.
+   *
+   * Returns true if a solution is found, false otherwise.
+   *
+   * The input consists of two vectors of data points X and Y with indices 0..m-1
+   * along with a weight vector W of the same size.
+   *
+   * The output is a vector B with indices 0..n that describes a polynomial
+   * that fits the data, such the sum of W[i] * W[i] * abs(Y[i] - (B[0] + B[1] X[i]
+   * + B[2] X[i]^2 ... B[n] X[i]^n)) for all i between 0 and m-1 is minimized.
+   *
+   * Accordingly, the weight vector W should be initialized by the caller with the
+   * reciprocal square root of the variance of the error in each input data point.
+   * In other words, an ideal choice for W would be W[i] = 1 / var(Y[i]) = 1 / stddev(Y[i]).
+   * The weights express the relative importance of each data point.  If the weights are
+   * all 1, then the data points are considered to be of equal importance when fitting
+   * the polynomial.  It is a good idea to choose weights that diminish the importance
+   * of data points that may have higher than usual error margins.
+   *
+   * Errors among data points are assumed to be independent.  W is represented here
+   * as a vector although in the literature it is typically taken to be a diagonal matrix.
+   *
+   * That is to say, the function that generated the input data can be approximated
+   * by y(x) ~= B[0] + B[1] x + B[2] x^2 + ... + B[n] x^n.
+   *
+   * The coefficient of determination (R^2) is also returned to describe the goodness
+   * of fit of the model for the given data.  It is a value between 0 and 1, where 1
+   * indicates perfect correspondence.
+   *
+   * This function first expands the X vector to a m by n matrix A such that
+   * A[i][0] = 1, A[i][1] = X[i], A[i][2] = X[i]^2, ..., A[i][n] = X[i]^n, then
+   * multiplies it by w[i]./
+   *
+   * Then it calculates the QR decomposition of A yielding an m by m orthonormal matrix Q
+   * and an m by n upper triangular matrix R.  Because R is upper triangular (lower
+   * part is all zeroes), we can simplify the decomposition into an m by n matrix
+   * Q1 and a n by n matrix R1 such that A = Q1 R1.
+   *
+   * Finally we solve the system of linear equations given by R1 B = (Qtranspose W Y)
+   * to find B.
+   *
+   * For efficiency, we lay out A and Q column-wise in memory because we frequently
+   * operate on the column vectors.  Conversely, we lay out R row-wise.
+   *
+   * http://en.wikipedia.org/wiki/Numerical_methods_for_linear_least_squares
+   * http://en.wikipedia.org/wiki/Gram-Schmidt
+   */
+  function solveLeastSquares(x, y, w,
+                             m, n, outB, outDet) {
+    // indexes
+    var h, i, j;
+
+    if (DEBUG) {
+      console.log("solveLeastSquares: ",
+                  "m => ", m,
+                  "n => ", n,
+                  "x => ", x,
+                  "y => ", y,
+                  "w => ", w,
+                  "outB =>", outB,
+                  "outDet =>", outDet);
+    }
+
+    // Expand the X vector to a matrix A, pre-multiplied by the weights.
+    // float a[n][m]; // column-major order
+    var a = createTwoDimArray(n, m);
+    for (h = 0; h < m; h++) {
+      a[0][h] = w[h];
+      for (i = 1; i < n; i++) {
+        a[i][h] = a[i - 1][h] * x[h];
+      }
+    }
+    if (DEBUG) {
+      log({a : a});
+    }
+
+    // Apply the Gram-Schmidt process to A to obtain its QR decomposition.
+    // float q[n][m]; // orthonormal basis, column-major order
+    var q = createTwoDimArray(n, m);
+    // float r[n][n]; // upper triangular matrix, row-major order
+    var r = createTwoDimArray(n, n);
+    for (j = 0; j < n; j++) {
+      for (h = 0; h < m; h++) {
+        q[j][h] = a[j][h];
+      }
+      for (i = 0; i < j; i++) {
+        var dot = vectorDot(q[j], q[i]);
+        for (h = 0; h < m; h++) {
+          q[j][h] -= dot * q[i][h];
+        }
+      }
+
+      var norm = vectorNorm(q[j], m);
+      if (DEBUG) {
+        log({q : q});
+        console.log('norm', norm, m, q[j][0]);
+      }
+      if (norm < 0.000001) {
+        // vectors are linearly dependent or zero so no solution
+        if (DEBUG) {
+          console.log("  - no solution, norm=%f", norm);
+        }
+        return false;
+      }
+
+      var invNorm = 1.0 / norm;
+      for (h = 0; h < m; h++) {
+        q[j][h] *= invNorm;
+      }
+      for (i = 0; i < n; i++) {
+        r[j][i] = i < j ? 0 : vectorDot(q[j], a[i]);
+      }
+    }
+
+    if (DEBUG) {
+      console.log("  - q=> ", q[0][0]);
+      console.log("  - r=> ", r[0][0]);
+
+      // calculate QR, if we factored A correctly then QR should equal A
+      var qr = createTwoDimArray(n, m);
+      for (h = 0; h < m; h++) {
+        for (i = 0; i < n; i++) {
+          qr[i][h] = 0;
+          for (j = 0; j < n; j++) {
+            qr[i][h] += q[j][h] * r[j][i];
+          }
+        }
+      }
+      console.log("  - qr=%s",qr[0][0]);
+    } // End DEBUG
+
+    // Solve R B = Qt W Y to find B.  This is easy because R is upper triangular.
+    // We just work from bottom-right to top-left calculating B's coefficients.
+    var wy = new Array(m);
+    for (h = 0; h < m; h++) {
+      wy[h] = y[h] * w[h];
+    }
+    for (i = n; i-- !== 0; ) {
+      outB[i] = vectorDot(q[i], wy, m);
+      for (j = n - 1; j > i; j--) {
+        outB[i] -= r[i][j] * outB[j];
+      }
+      outB[i] /= r[i][i];
+    }
+
+    if (DEBUG) {
+      console.log("  - b=%s", outB);
+    }
+
+    // Calculate the coefficient of determination as 1 - (SSerr / SStot) where
+    // SSerr is the residual sum of squares (variance of the error),
+    // and SStot is the total sum of squares (variance of the data) where each
+    // has been weighted.
+    var ymean = 0;
+    for (h = 0; h < m; h++) {
+      ymean += y[h];
+    }
+    ymean /= m;
+
+    var sserr = 0;
+    var sstot = 0;
+    for (h = 0; h < m; h++) {
+      var err = y[h] - outB[0];
+      var term = 1;
+      for (i = 1; i < n; i++) {
+        term *= x[h];
+        err -= term * outB[i];
+      }
+      sserr += w[h] * w[h] * err * err;
+      var vari = y[h] - ymean;
+      sstot += w[h] * w[h] * vari * vari;
+    }
+    outDet.confidence = sstot > 0.000001 ? 1.0 - (sserr / sstot) : 1;
+
+    if (DEBUG) {
+      console.log(
+        "  - sserr => ", sserr,
+        "  - sstot => ", sstot,
+        "  - det => ", outDet
+      );
+    }
+    return true;
+  }
+
+  function chooseWeight(index) {
+    // TODO
+    return 1;
+  }
+
+  /**
+   * @param degree Order use 2...
+   */
+  function prepareEstimator(degree) {
+    estimator.clear();
+
+    // Iterate over movement samples in reverse time order and collect samples.
+    var x = new Array(HISTORY_SIZE);
+    var y = new Array(HISTORY_SIZE);
+    var w = new Array(HISTORY_SIZE);
+    var time = new Array(HISTORY_SIZE);
+    var m = 0;
+    var index = mIndex;
+    var newestMovement = positions[mIndex];
+    if (newestMovement === undefined) {
+      return false;
+    }
+    do {
+      var movement = positions[index];
+      if (!movement) {
+        break;
+      }
+
+      var age = newestMovement.timestamp - movement.timestamp;
+      if (age > HORIZON_MS) {
+        break; // Old points don't use
+      }
+
+      x[m] = movement.x;
+      y[m] = movement.y;
+      w[m] = chooseWeight(index);
+      time[m] = -age;
+      index = (index === 0 ? HISTORY_SIZE : index) - 1;
+    } while (++m < HISTORY_SIZE);
+
+    if (m === 0) {
+      console.log('no data to estimate');
+      return false; // no data
+    }
+
+    // Calculate a least squares polynomial fit.
+    if (degree > m - 1) {
+      degree = m - 1;
+    }
+    if (degree >= 1) {
+      // TODO change xdet, ydet to be returned from function
+      var xdet = {confidence: 0};
+      var ydet = {confidence: 0};
+      var n = degree + 1;
+      if (solveLeastSquares(time, x, w, m, n, estimator.xCoeff, xdet) &&
+          solveLeastSquares(time, y, w, m, n, estimator.yCoeff, ydet)) {
+        estimator.time = newestMovement.timestamp;
+        estimator.degree = degree;
+        estimator.confidence = xdet.confidence * ydet.confidence;
+
+        if (DEBUG) {
+          console.log("Estimate: ",
+                      "degree", estimator.degree,
+                      "xCoeff", estimator.xCoeff,
+                      "yCoeff", estimator.yCoeff,
+                      "confidence", estimator.confidence);
+        }
+        return true;
+      }
+    }
+
+    // No velocity data available for this pointer, but we do have its current position.
+    if (DEBUG) {
+      console.log("velocity data available for this pointer, but we do have its current position.");
+    }
+    estimator.xCoeff[0] = x[0];
+    estimator.yCoeff[0] = y[0];
+    estimator.time = newestMovement.timestamp;
+    estimator.degree = 0;
+    estimator.confidence = 1;
+    return true;
+  }
+
+  return {
+    clear: clear,
+
+    getVelocity: function getVelocity() {
+      // 2 polynomial estimator
+      if (prepareEstimator(2) && estimator.degree >= 1) {
+        return {
+          unit: "px / ms",
+          vx: estimator.xCoeff[1],
+          vy: estimator.yCoeff[1]
+        };
+      }
+      return {
+        info: 'no velo',
+        unit: "px / ms",
+        vx: 0,
+        vy: 0
+      };
+    },
+
+    getPositions: function getPositions() {
+      var m = 0;
+      var index = mIndex;
+      var r = [];
+      do {
+        var movement = positions[index];
+        if (!movement) {
+          break;
+        }
+        r.push(movement);
+        index = (index === 0 ? HISTORY_SIZE : index) - 1;
+      } while (++m < HISTORY_SIZE);
+
+      return r;
+    },
+
+    /**
+     * @param pos = {x, y, timestamp_ms}
+     */
+    addMovement: function addMovement(pos) {
+      if (pos.timestamp >= last_timestamp + ASSUME_POINTER_STOPPED_TIME_MS) {
+        // We have not received any movements for too long.  Assume that all pointers
+        // have stopped.
+        if (DEBUG) {
+          console.log('no movements assume stop');
+        }
+        clear();
+      }
+      last_timestamp = pos.timestamp;
+
+      // strategy add
+      if (++mIndex === HISTORY_SIZE) {
+        mIndex = 0;
+      }
+
+      positions[mIndex] = pos;
+    }
+  };
 }
 
 module.exports = VelocityTracker;

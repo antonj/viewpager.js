@@ -2,7 +2,7 @@
 'use strict';
 
 module.exports = {
-  add : function (el, type, fn, capture) {
+  add: function (el, type, fn, capture) {
     var i, l;
     if (!(type instanceof Array)) {
       type = [type];
@@ -12,7 +12,7 @@ module.exports = {
     }
   },
 
-  remove : function (el, type, fn, capture) {
+  remove: function (el, type, fn, capture) {
     var i, l;
     if (!(type instanceof Array)) {
       type = [type];

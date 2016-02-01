@@ -434,7 +434,7 @@ function Scroller(interpolator, flywheel) {
       var timePassed = Math.floor(currentAnimationTimeMillis() - mStartTime);
 
       // NOTE never let time run out?
-      if (true || timePassed < mDuration) {
+      if (timePassed < mDuration) {
         switch (mMode) {
         case SCROLL_MODE:
           var x = timePassed * mDurationReciprocal;
